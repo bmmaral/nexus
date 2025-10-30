@@ -162,7 +162,9 @@ fi
         if ai_commits:
             report_lines.append("\n## 🤖 Recent AI Changes\n\n")
             for commit in ai_commits[:5]:
-                report_lines.append(f"- {commit.hexsha[:7]}: {commit.message.split('\n')[0]}\n")
+                message_lines = commit.message.splitlines()
+                summary = message_lines[0] if message_lines else ''
+                report_lines.append(f"- {commit.hexsha[:7]}: {summary}\n")
 
         report_text = ''.join(report_lines)
         Path('reports/drift.md').write_text(report_text)
