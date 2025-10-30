@@ -1,0 +1,36 @@
+name: Stale Branches Cleanup
+on:
+  schedule:
+    - cron: '0 6 * * SUN'
+  workflow_dispatch:
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Find stale branches (>30 days no commits)
+        id: stale
+        run: |
+          git fetch --all --prune
+          BRANCHES=$(git for-each-ref --format='%(refname:short) %(committerdate:unix)' refs/remotes/origin | awk -v now=$(date +%s) '$1!~/HEAD/ {if (now-$2>2592000) print $1}')
+          echo "list<<EOF" >> $GITHUB_OUTPUT
+          echo "$BRANCHES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Open issue with stale branches
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const branches = `"${{ steps.stale.outputs.list }}"`.trim().split('\n').filter(Boolean);
+            const body = branches.length ? branches.map(b=>`- ${b}`).join('\n') : 'No stale branches found.';
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🧹 Stale branches (30+ days)',
+              body: `The following branches appear stale (no commits in 30+ days):\n\n${body}\n\nConsider deleting or archiving them.`,
+              labels: ['maintenance','automated']
+            });
