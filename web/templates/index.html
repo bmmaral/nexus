@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nexus Chat</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Nexus Repo Chat</h1>
+
+    <div class="controls">
+      <label>
+        Model
+        <select id="model"></select>
+      </label>
+      <label>
+        Repo Path
+        <input id="repo" type="text" placeholder="." value="." />
+      </label>
+    </div>
+
+    <textarea id="message" placeholder="Ask something about this repo..."></textarea>
+    <button id="send">Send</button>
+
+    <div id="answer" class="answer"></div>
+  </div>
+
+<script>
+async function loadModels() {
+  const res = await fetch('/api/models');
+  const data = await res.json();
+  const sel = document.getElementById('model');
+  data.models.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m; opt.textContent = m;
+    sel.appendChild(opt);
+  });
+}
+
+async function send() {
+  const model = document.getElementById('model').value;
+  const repo = document.getElementById('repo').value || '.';
+  const message = document.getElementById('message').value;
+  const btn = document.getElementById('send');
+  const answer = document.getElementById('answer');
+  btn.disabled = true; answer.textContent = 'Thinking...';
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, repo_path: repo, message })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Request failed');
+    answer.textContent = data.answer || '(no answer)';
+  } catch (e) {
+    answer.textContent = 'Error: ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  loadModels();
+  document.getElementById('send').addEventListener('click', send);
+});
+</script>
+</body>
+</html>
