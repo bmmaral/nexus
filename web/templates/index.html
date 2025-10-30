@@ -81,6 +81,64 @@
         <button id="importConv">Import</button>
         <div id="importResult" class="note"></div>
       </div>
+
+      <div class="panel">
+        <h2>GitHub Remote</h2>
+        <div class="controls" id="ghTokenRow">
+          <label>
+            Token
+            <input id="ghToken" type="password" placeholder="ghp_..." />
+          </label>
+          <button id="saveToken">Save Token</button>
+        </div>
+        <div class="controls">
+          <label>
+            Owner
+            <input id="ghOwner" type="text" placeholder="username-or-org" />
+          </label>
+          <label>
+            Repo
+            <input id="ghRepo" type="text" placeholder="repo-name" />
+          </label>
+          <label>
+            Ref
+            <input id="ghRef" type="text" placeholder="(optional branch/sha)" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="listRepos">List My Repos</button>
+          <button id="remoteAnalyze">Remote Analyze</button>
+          <button id="remoteTimeline">Remote Timeline</button>
+          <button id="remoteContext">Remote Context</button>
+        </div>
+        <div class="controls">
+          <label>
+            Select Repo
+            <select id="ghRepoSelect"></select>
+          </label>
+          <button id="refreshRepos">Refresh</button>
+        </div>
+        <pre id="ghOutput" class="mono"></pre>
+      </div>
+
+      <div class="panel">
+        <h2>AI Diagnosis</h2>
+        <div class="controls">
+          <label>
+            Model
+            <select id="diagModel">
+              <option>google/gemini-1.5-flash</option>
+              <option>anthropic/claude-3.5-haiku</option>
+              <option>openai/gpt-4o-mini</option>
+            </select>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="diagLocal">Diagnose (Local Repo)</button>
+          <button id="diagRemote">Diagnose (Selected Remote)</button>
+        </div>
+        <pre id="diagOut" class="mono"></pre>
+      </div>
     </section>
   </div>
 
@@ -190,6 +248,158 @@ async function importConversation() {
   }
 }
 
+async function tokenStatus() {
+  try {
+    const res = await fetch('/api/github/token-status');
+    const data = await res.json();
+    return !!data.has_token;
+  } catch { return false; }
+}
+
+async function saveToken() {
+  const token = document.getElementById('ghToken').value.trim();
+  if (!token) { alert('Enter a token'); return; }
+  const out = document.getElementById('ghOutput');
+  out.textContent = 'Saving token...';
+  try {
+    const res = await fetch('/api/github/connect', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Save token failed');
+    out.textContent = '✓ Token saved';
+  } catch (e) {
+    out.textContent = 'Error: ' + e.message;
+  }
+}
+
+function ghInputs() {
+  return {
+    owner: document.getElementById('ghOwner').value.trim(),
+    repo: document.getElementById('ghRepo').value.trim(),
+    ref: document.getElementById('ghRef').value.trim(),
+    out: document.getElementById('ghOutput')
+  };
+}
+
+async function listRepos() {
+  const { out } = ghInputs();
+  out.textContent = 'Loading repos...';
+  try {
+    const res = await fetch('/api/github/repos');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Failed');
+    const items = data.items || [];
+    // Populate dropdown
+    const sel = document.getElementById('ghRepoSelect');
+    sel.innerHTML = '';
+    items.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.full_name; opt.textContent = r.full_name;
+      sel.appendChild(opt);
+    });
+    out.textContent = items.length ? `Loaded ${items.length} repos.` : 'No repos found.';
+  } catch (e) {
+    out.textContent = 'Error: ' + e.message;
+  }
+}
+
+async function remoteAnalyze() {
+  let { owner, repo, ref, out } = ghInputs();
+  if ((!owner || !repo) && document.getElementById('ghRepoSelect').value) {
+    const full = document.getElementById('ghRepoSelect').value;
+    [owner, repo] = full.split('/');
+  }
+  if (!owner || !repo) { alert('Owner and repo required'); return; }
+  out.textContent = 'Analyzing remotely...';
+  try {
+    const url = `/api/github/repo/${owner}/${repo}/analyze` + (ref ? `?ref=${encodeURIComponent(ref)}` : '');
+    const res = await fetch(url, { method: 'POST' });
+    const text = await res.text();
+    if (!res.ok) throw new Error(text);
+    out.textContent = text;
+  } catch (e) {
+    out.textContent = 'Error: ' + e.message;
+  }
+}
+
+async function remoteTimeline() {
+  let { owner, repo, ref, out } = ghInputs();
+  if ((!owner || !repo) && document.getElementById('ghRepoSelect').value) {
+    const full = document.getElementById('ghRepoSelect').value;
+    [owner, repo] = full.split('/');
+  }
+  if (!owner || !repo) { alert('Owner and repo required'); return; }
+  out.textContent = 'Loading remote timeline...';
+  try {
+    const url = `/api/github/repo/${owner}/${repo}/timeline` + (ref ? `?ref=${encodeURIComponent(ref)}` : '');
+    const res = await fetch(url);
+    const text = await res.text();
+    if (!res.ok) throw new Error(text);
+    out.textContent = text;
+  } catch (e) {
+    out.textContent = 'Error: ' + e.message;
+  }
+}
+
+async function remoteContext() {
+  let { owner, repo, ref, out } = ghInputs();
+  if ((!owner || !repo) && document.getElementById('ghRepoSelect').value) {
+    const full = document.getElementById('ghRepoSelect').value;
+    [owner, repo] = full.split('/');
+  }
+  if (!owner || !repo) { alert('Owner and repo required'); return; }
+  out.textContent = 'Loading remote context...';
+  try {
+    const url = `/api/github/repo/${owner}/${repo}/context` + (ref ? `?ref=${encodeURIComponent(ref)}` : '');
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Failed');
+    out.textContent = `# PRD (first 2000 chars)\n\n${(data.prd || '').slice(0,2000)}\n\n# Recent Commits\n\n` + (data.commits || []).map(c => `- ${c.date} ${c.sha} ${c.author}: ${c.message}`).join('\n');
+  } catch (e) {
+    out.textContent = 'Error: ' + e.message;
+  }
+}
+
+async function diagLocal() {
+  const model = document.getElementById('diagModel').value;
+  const out = document.getElementById('diagOut');
+  out.textContent = 'Running diagnosis (local)...';
+  try {
+    const res = await fetch('/api/diagnose', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ repo_path: '.', model })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Failed');
+    out.textContent = data.answer || '(no answer)';
+  } catch (e) {
+    out.textContent = 'Error: ' + e.message;
+  }
+}
+
+async function diagRemote() {
+  const model = document.getElementById('diagModel').value;
+  const out = document.getElementById('diagOut');
+  let { owner, repo, ref } = ghInputs();
+  if ((!owner || !repo) && document.getElementById('ghRepoSelect').value) {
+    const full = document.getElementById('ghRepoSelect').value;
+    [owner, repo] = full.split('/');
+  }
+  if (!owner || !repo) { alert('Select or enter a repo'); return; }
+  out.textContent = 'Running diagnosis (remote)...';
+  try {
+    const url = `/api/github/repo/${owner}/${repo}/diagnose` + (ref ? `?ref=${encodeURIComponent(ref)}` : '');
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model }) });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Failed');
+    out.textContent = data.answer || '(no answer)';
+  } catch (e) {
+    out.textContent = 'Error: ' + e.message;
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   loadModels();
   loadStatus();
@@ -199,6 +409,23 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('refreshTimeline').addEventListener('click', refreshTimeline);
   document.getElementById('loadDrift').addEventListener('click', loadDrift);
   document.getElementById('importConv').addEventListener('click', importConversation);
+  document.getElementById('saveToken').addEventListener('click', saveToken);
+  document.getElementById('listRepos').addEventListener('click', listRepos);
+  document.getElementById('remoteAnalyze').addEventListener('click', remoteAnalyze);
+  document.getElementById('remoteTimeline').addEventListener('click', remoteTimeline);
+  document.getElementById('remoteContext').addEventListener('click', remoteContext);
+  document.getElementById('refreshRepos').addEventListener('click', listRepos);
+  document.getElementById('diagLocal').addEventListener('click', diagLocal);
+  document.getElementById('diagRemote').addEventListener('click', diagRemote);
+
+  // Auto-hide token row and auto-load repos if token present
+  tokenStatus().then(has => {
+    if (has) {
+      const row = document.getElementById('ghTokenRow');
+      if (row) row.style.display = 'none';
+      listRepos();
+    }
+  });
 });
 </script>
 </body>

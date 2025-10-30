@@ -21,19 +21,19 @@ The CLI lives in `nexus.py`.
 
 ```bash
 # Initialize directories and hooks in the current repo
-python3 nexus.py init
+python nexus.py init
 
 # Import an AI conversation export (ChatGPT/Claude/Gemini JSON)
-python3 nexus.py import-conv ~/Downloads/chatgpt-export.json
+python nexus.py import-conv ~/Downloads/chatgpt-export.json
 
 # Show quick status summary
-python3 nexus.py status
+python nexus.py status
 
 # Analyze PRD vs code drift and write reports/drift.md
-python3 nexus.py analyze
+python nexus.py analyze
 
 # Update conversations timeline (conversations/index.md)
-python3 nexus.py timeline
+python nexus.py timeline
 ```
 
 Recommended: symlink to your PATH for the convenience command `nexus`.

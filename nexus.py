@@ -17,11 +17,13 @@ class Nexus:
     def __init__(self) -> None:
         self.repo = git.Repo('.')
         self.root = Path('.')
+        # Configurable conversations directory via env (.env supported by server)
+        self.conv_dir = Path(os.getenv('NEXUS_CONVERSATIONS_DIR', 'conversations')).expanduser()
 
     def init(self) -> None:
         """Initialize nexus in current repo"""
         # Create folders
-        (self.root / 'conversations').mkdir(exist_ok=True)
+        (self.conv_dir).mkdir(exist_ok=True)
         (self.root / 'reports').mkdir(exist_ok=True)
         (self.root / '.nexus').mkdir(exist_ok=True)
 
@@ -35,7 +37,8 @@ class Nexus:
                 'analyze_on_push': True,
                 'ignore_patterns': ['node_modules', '.env', 'build/'],
             }
-            with open(config_path, 'w') as f:
+            # Write UTF-8 to avoid Windows 'charmap' errors
+            with open(config_path, 'w', encoding='utf-8') as f:
                 yaml.safe_dump(config, f, sort_keys=False)
 
         # Add pre-commit hook (idempotent)
@@ -80,9 +83,10 @@ fi
 
         # Copy to conversations folder with date prefix
         date_str = datetime.now().strftime('%Y-%m-%d')
-        dest_file = f"conversations/{date_str}-{platform}.json"
+        dest_file = str(self.conv_dir / f"{date_str}-{platform}.json")
 
-        with open(file_path, 'r') as f:
+        # Always read conversations as UTF-8; fall back gracefully
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
             try:
                 data = json.load(f)
             except json.JSONDecodeError as e:
@@ -103,7 +107,8 @@ fi
                 decisions.append(content_str[:160])
 
         # Save file
-        with open(dest_file, 'w') as f:
+        # Save as UTF-8 to preserve emojis and non-ascii
+        with open(dest_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
         # Auto-commit if configured
@@ -132,7 +137,7 @@ fi
         report_lines.append("# Code-PRD Drift Report\n")
         report_lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n")
 
-        prd_content = Path('PRD.md').read_text() if Path('PRD.md').exists() else ''
+        prd_content = Path('PRD.md').read_text(encoding='utf-8', errors='ignore') if Path('PRD.md').exists() else ''
 
         # Endpoints listed in PRD
         prd_endpoints = set(re.findall(r'(?:GET|POST|PUT|DELETE)\s+(/api/\S+)', prd_content, flags=re.IGNORECASE))
@@ -167,7 +172,8 @@ fi
                 report_lines.append(f"- {commit.hexsha[:7]}: {summary}\n")
 
         report_text = ''.join(report_lines)
-        Path('reports/drift.md').write_text(report_text)
+        # Write UTF-8 as the report includes emoji markers
+        Path('reports/drift.md').write_text(report_text, encoding='utf-8')
 
         issue_count = len(undocumented) + len(ai_commits)
         click.echo(f"🔍 Analysis complete: {issue_count} issues found")
@@ -184,7 +190,7 @@ fi
         """Show project status"""
         last_commit = self.repo.head.commit
         days_ago = (datetime.now() - datetime.fromtimestamp(last_commit.committed_date)).days
-        conv_count = len(list(Path('conversations').glob('*.json'))) if Path('conversations').exists() else 0
+        conv_count = len(list(self.conv_dir.glob('*.json'))) if self.conv_dir.exists() else 0
         drift_exists = Path('reports/drift.md').exists()
 
         click.echo(
@@ -205,8 +211,8 @@ Drift Report: {'✅ Available' if drift_exists else '❌ Not generated'}
         timeline: list[str] = ["# Conversation Timeline\n\n"]
         events: list[dict] = []
 
-        if Path('conversations').exists():
-            for conv_file in Path('conversations').glob('*.json'):
+        if self.conv_dir.exists():
+            for conv_file in self.conv_dir.glob('*.json'):
                 parts = conv_file.stem.split('-')
                 date = '-'.join(parts[0:3]) if len(parts) >= 3 else datetime.now().strftime('%Y-%m-%d')
                 platform = parts[-1] if parts else 'unknown'
@@ -232,7 +238,7 @@ Drift Report: {'✅ Available' if drift_exists else '❌ Not generated'}
             elif event['type'] == 'commit':
                 timeline.append(f"- 📝 [{event['sha']}] {event['message']}\n")
 
-        Path('conversations/index.md').write_text(''.join(timeline))
+        (self.conv_dir / 'index.md').write_text(''.join(timeline), encoding='utf-8')
 
     def prd_summary(self) -> str:
         """Generate PRD change summary for commit message"""
@@ -260,7 +266,7 @@ Drift Report: {'✅ Available' if drift_exists else '❌ Not generated'}
         if days_inactive >= 5:
             next_steps = "No next steps defined"
             if Path('PRD.md').exists():
-                content = Path('PRD.md').read_text()
+                content = Path('PRD.md').read_text(encoding='utf-8', errors='ignore')
                 match = re.search(r'## Next Steps(.*?)##', content, re.DOTALL)
                 if match:
                     next_steps = match.group(1).strip()[:500]

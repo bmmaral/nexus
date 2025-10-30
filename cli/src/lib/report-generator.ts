@@ -1,0 +1,287 @@
+import dayjs from 'dayjs';
+
+export class ReportGenerator {
+  async generate(comparison: any, format: string = 'md'): Promise<string> {
+    switch (format.toLowerCase()) {
+      case 'json':
+        return this.generateJSON(comparison);
+      case 'html':
+        return this.generateHTML(comparison);
+      case 'md':
+      case 'markdown':
+      default:
+        return this.generateMarkdown(comparison);
+    }
+  }
+
+  private generateJSON(comparison: any): string {
+    return JSON.stringify(comparison, null, 2);
+  }
+
+  private generateMarkdown(comparison: any): string {
+    const { issues, syncPercentage, prdSummary, codeSummary, aiChanges, lastAnalysis } = comparison;
+    
+    let report = `# Code Sync Analysis Report
+
+Generated: ${dayjs(lastAnalysis).format('YYYY-MM-DD HH:mm:ss')}
+
+## 📊 Summary
+
+**Sync Status:** ${this.getSyncStatusEmoji(syncPercentage)} ${syncPercentage}%
+
+### PRD Overview
+- Endpoints: ${prdSummary.endpoints}
+- Models: ${prdSummary.models}
+- Features: ${prdSummary.features}
+
+### Code Analysis
+- Endpoints: ${codeSummary.endpoints}
+- Models: ${codeSummary.models}
+- Files Analyzed: ${codeSummary.filesAnalyzed}
+
+---
+
+## Issues Found
+`;
+
+    // High Priority Issues
+    if (issues.high.length > 0) {
+      report += `\n### 🔴 High Priority Issues (${issues.high.length})
+
+These issues require immediate attention as they represent significant discrepancies between the PRD and implementation.
+
+`;
+      issues.high.forEach((issue: any, index: number) => {
+        report += `#### ${index + 1}. ${issue.title}
+
+- **Type:** ${issue.type}
+- **Recommendation:** ${issue.recommendation}
+`;
+        if (issue.endpoint) {
+          report += `- **Details:** \`${issue.endpoint.method} ${issue.endpoint.path}\` in \`${issue.endpoint.file}\`\n`;
+        }
+        if (issue.model) {
+          report += `- **Model:** \`${issue.model.name}\` in \`${issue.model.file}\`\n`;
+        }
+        report += '\n';
+      });
+    }
+
+    // Medium Priority Issues
+    if (issues.medium.length > 0) {
+      report += `\n### 🟡 Medium Priority Issues (${issues.medium.length})
+
+These issues should be addressed to maintain consistency between documentation and code.
+
+`;
+      issues.medium.forEach((issue: any, index: number) => {
+        report += `#### ${index + 1}. ${issue.title}
+
+- **Type:** ${issue.type}
+- **Recommendation:** ${issue.recommendation}
+`;
+        if (issue.differences) {
+          report += '- **Differences:**\n';
+          issue.differences.forEach((diff: any) => {
+            report += `  - ${diff.field}: ${diff.type}\n`;
+          });
+        }
+        report += '\n';
+      });
+    }
+
+    // Low Priority Issues
+    if (issues.low.length > 0) {
+      report += `\n### 🔵 Low Priority Issues (${issues.low.length})
+
+These are minor inconsistencies that can be addressed during regular maintenance.
+
+`;
+      issues.low.forEach((issue: any, index: number) => {
+        report += `- ${issue.title}\n`;
+        if (issue.prdValue !== undefined) {
+          report += `  - PRD: \`${issue.prdValue}\`\n`;
+          report += `  - Code: \`${issue.codeValue}\`\n`;
+        }
+      });
+      report += '\n';
+    }
+
+    // AI-Generated Changes
+    if (aiChanges && aiChanges.length > 0) {
+      report += `\n## 🤖 AI-Generated Changes
+
+The following changes were made by AI agents and should be reviewed:
+
+`;
+      aiChanges.forEach((change: any) => {
+        report += `### ${change.file}
+
+- **Commit:** \`${change.commit}\`
+- **Author:** ${change.author}
+- **Date:** ${dayjs(change.date).format('YYYY-MM-DD HH:mm')}
+- **Message:** ${change.message}
+`;
+        if (change.endpoints.length > 0) {
+          report += `- **Endpoints Added:** ${change.endpoints.map((e: any) => `\`${e.method} ${e.path}\``).join(', ')}\n`;
+        }
+        if (change.models.length > 0) {
+          report += `- **Models Added:** ${change.models.map((m: any) => `\`${m.name}\``).join(', ')}\n`;
+        }
+        report += '\n';
+      });
+    }
+
+    // Recommendations
+    report += `\n## 💡 Recommendations
+
+`;
+
+    if (syncPercentage < 80) {
+      report += `1. **Improve Documentation:** The sync percentage is below 80%. Review and update the PRD to match the current implementation.
+`;
+    }
+
+    if (issues.high.length > 0) {
+      report += `2. **Address Critical Issues:** There are ${issues.high.length} high-priority issues that need immediate attention.
+`;
+    }
+
+    if (aiChanges && aiChanges.length > 5) {
+      report += `3. **Review AI Changes:** Multiple AI-generated changes detected. Review these changes to ensure they align with project requirements.
+`;
+    }
+
+    report += `
+## 🎯 Next Steps
+
+1. Review all high-priority issues
+2. Update PRD documentation where needed
+3. Implement missing endpoints/models
+4. Verify AI-generated changes
+5. Run analysis again to verify fixes
+
+---
+
+*Generated by Project Nexus - Code Sync Analyzer*
+`;
+
+    return report;
+  }
+
+  private generateHTML(comparison: any): string {
+    const md = this.generateMarkdown(comparison);
+    
+    // Simple HTML wrapper (in production, use a proper markdown-to-HTML converter)
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Sync Analysis Report</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1, h2, h3, h4 {
+      color: #333;
+    }
+    h1 {
+      border-bottom: 3px solid #0066ff;
+      padding-bottom: 10px;
+    }
+    h2 {
+      margin-top: 30px;
+      color: #0066ff;
+    }
+    h3 {
+      margin-top: 20px;
+    }
+    code {
+      background: #f0f0f0;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+    .high-priority {
+      color: #ff3333;
+    }
+    .medium-priority {
+      color: #ff9900;
+    }
+    .low-priority {
+      color: #0066ff;
+    }
+    .sync-status {
+      font-size: 24px;
+      font-weight: bold;
+      padding: 10px;
+      border-radius: 5px;
+      display: inline-block;
+      margin: 10px 0;
+    }
+    .sync-good {
+      background: #d4f4dd;
+      color: #00aa00;
+    }
+    .sync-warning {
+      background: #fff3cd;
+      color: #ff9900;
+    }
+    .sync-bad {
+      background: #f8d7da;
+      color: #ff3333;
+    }
+    ul {
+      list-style-type: disc;
+      margin-left: 20px;
+    }
+    .issue {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-left: 4px solid;
+      border-radius: 3px;
+    }
+    .issue-high {
+      border-color: #ff3333;
+    }
+    .issue-medium {
+      border-color: #ff9900;
+    }
+    .issue-low {
+      border-color: #0066ff;
+    }
+  </style>
+</head>
+<body>
+  <pre>${this.escapeHtml(md)}</pre>
+</body>
+</html>`;
+  }
+
+  private getSyncStatusEmoji(percentage: number): string {
+    if (percentage >= 90) return '✅';
+    if (percentage >= 70) return '⚠️';
+    return '🔴';
+  }
+
+  private escapeHtml(text: string): string {
+    const map: { [key: string]: string } = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    
+    return text.replace(/[&<>"']/g, m => map[m]);
+  }
+}
+
+

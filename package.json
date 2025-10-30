@@ -1,0 +1,33 @@
+{
+  "name": "nexus-project",
+  "version": "1.0.0",
+  "description": "AI-Powered Project Memory & Repository Sync System",
+  "private": true,
+  "workspaces": [
+    "cli",
+    "packages/*",
+    "mobile-app"
+  ],
+  "scripts": {
+    "build": "npm run build:cli && npm run build:packages",
+    "build:cli": "cd cli && npm run build",
+    "build:packages": "npm run build -ws --if-present",
+    "test": "npm test -ws --if-present",
+    "install:all": "npm install && cd mobile-app && npm install",
+    "dev": "npm run dev -w cli",
+    "nexus": "node cli/dist/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+
+
