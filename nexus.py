@@ -292,7 +292,21 @@ def init() -> None:
 @click.argument('file')
 @click.option('--platform', help='Platform (chatgpt/claude/gemini)')
 def import_conv_cmd(file: str, platform: str | None) -> None:
-    """Import conversation file"""
+    """Import conversation file (legacy alias)"""
+    Nexus().import_conversation(file, platform)
+
+
+@cli.group(name='add')
+def add_group() -> None:
+    """Add resources to the project (conversations, modules)"""
+    pass
+
+
+@add_group.command(name='conversation')
+@click.argument('file')
+@click.option('--platform', help='Platform (chatgpt/claude/gemini)')
+def add_conversation_cmd(file: str, platform: str | None) -> None:
+    """Add (import) an AI conversation export file"""
     Nexus().import_conversation(file, platform)
 
 
@@ -319,6 +333,21 @@ def timeline() -> None:
 def check() -> None:
     """Check for inactive projects (for GitHub Action)"""
     Nexus().check_inactive()
+
+
+@cli.command(name='remind')
+def remind_cmd() -> None:
+    """Check inactivity and print a human-readable reminder summary"""
+    result = Nexus().check_inactive()
+    if result.get('inactive'):
+        days = result.get('days')
+        last = (result.get('last_commit') or '').split('\n')[0]
+        click.echo(
+            f"⏰ Project inactive for {days} days. Last commit: {last}"
+        )
+        click.echo("Tip: Define a '## Next Steps' section in PRD.md for better reminders.")
+    else:
+        click.echo("✅ Project is active. No reminder needed.")
 
 
 @cli.command(name='prd-summary')
