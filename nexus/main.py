@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-"""nexus - Dead simple project memory tool"""
-
 import os
 import json
 import re
@@ -8,7 +5,6 @@ import stat
 from datetime import datetime
 from pathlib import Path
 
-import click
 import git
 import yaml
 
@@ -61,13 +57,11 @@ fi
             # Not a git repo or hooks dir missing; skip silently
             pass
 
-        click.echo("✅ Nexus initialized!")
-
     def import_conversation(self, file_path: str, platform: str | None = None) -> None:
         """Import AI conversation from a JSON export file"""
         file_path = os.path.expanduser(file_path)
         if not os.path.exists(file_path):
-            raise click.ClickException(f"File not found: {file_path}")
+            raise FileNotFoundError(f"File not found: {file_path}")
 
         # Auto-detect platform from filename
         if not platform:
@@ -90,7 +84,7 @@ fi
             try:
                 data = json.load(f)
             except json.JSONDecodeError as e:
-                raise click.ClickException(f"Invalid JSON: {e}")
+                raise ValueError(f"Invalid JSON: {e}")
 
         # Extract naive key decisions (simple heuristics)
         decisions: list[str] = []
@@ -123,9 +117,6 @@ fi
         if auto_commit:
             self.repo.index.add([dest_file])
             self.repo.index.commit(f"conv: Import {platform} ({len(decisions)} decisions)")
-
-        click.echo(f"✅ Imported {platform} conversation")
-        click.echo(f"📌 Found {len(decisions)} decisions")
 
         # Update timeline
         self.update_timeline()
@@ -176,7 +167,7 @@ fi
         Path('reports/drift.md').write_text(report_text, encoding='utf-8')
 
         issue_count = len(undocumented) + len(ai_commits)
-        click.echo(f"🔍 Analysis complete: {issue_count} issues found")
+        print(f"🔍 Analysis complete: {issue_count} issues found")
 
         if issue_count > 0:
             # Best-effort commit
@@ -193,7 +184,7 @@ fi
         conv_count = len(list(self.conv_dir.glob('*.json'))) if self.conv_dir.exists() else 0
         drift_exists = Path('reports/drift.md').exists()
 
-        click.echo(
+        print(
             f"""
 📊 Project Status
 ─────────────────
@@ -280,89 +271,3 @@ Drift Report: {'✅ Available' if drift_exists else '❌ Not generated'}
             return result
 
         return {'inactive': False}
-
-
-@click.group()
-def cli() -> None:
-    """Nexus - Project memory tool"""
-    pass
-
-
-@cli.command()
-def init() -> None:
-    """Initialize nexus in current repo"""
-    Nexus().init()
-
-
-@cli.command(name='import-conv')
-@click.argument('file')
-@click.option('--platform', help='Platform (chatgpt/claude/gemini)')
-def import_conv_cmd(file: str, platform: str | None) -> None:
-    """Import conversation file (legacy alias)"""
-    Nexus().import_conversation(file, platform)
-
-
-@cli.group(name='add')
-def add_group() -> None:
-    """Add resources to the project (conversations, modules)"""
-    pass
-
-
-@add_group.command(name='conversation')
-@click.argument('file')
-@click.option('--platform', help='Platform (chatgpt/claude/gemini)')
-def add_conversation_cmd(file: str, platform: str | None) -> None:
-    """Add (import) an AI conversation export file"""
-    Nexus().import_conversation(file, platform)
-
-
-@cli.command()
-def analyze() -> None:
-    """Analyze code-PRD drift"""
-    Nexus().analyze()
-
-
-@cli.command()
-def status() -> None:
-    """Show project status"""
-    Nexus().status()
-
-
-@cli.command()
-def timeline() -> None:
-    """Update conversation timeline"""
-    Nexus().update_timeline()
-    click.echo("✅ Timeline updated: conversations/index.md")
-
-
-@cli.command()
-def check() -> None:
-    """Check for inactive projects (for GitHub Action)"""
-    Nexus().check_inactive()
-
-
-@cli.command(name='remind')
-def remind_cmd() -> None:
-    """Check inactivity and print a human-readable reminder summary"""
-    result = Nexus().check_inactive()
-    if result.get('inactive'):
-        days = result.get('days')
-        last = (result.get('last_commit') or '').split('\n')[0]
-        click.echo(
-            f"⏰ Project inactive for {days} days. Last commit: {last}"
-        )
-        click.echo("Tip: Define a '## Next Steps' section in PRD.md for better reminders.")
-    else:
-        click.echo("✅ Project is active. No reminder needed.")
-
-
-@cli.command(name='prd-summary')
-def prd_summary_cmd() -> None:
-    """Print PRD change summary for commit message"""
-    summary = Nexus().prd_summary()
-    if summary:
-        click.echo(summary)
-
-
-if __name__ == '__main__':
-    cli()
