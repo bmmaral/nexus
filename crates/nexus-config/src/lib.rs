@@ -202,7 +202,10 @@ max_hash_files = 1
     fn resolve_db_path_absolute_unchanged() {
         let cwd = Path::new("/tmp/wd");
         let p = Path::new("/var/db.sqlite");
-        assert_eq!(resolve_db_path_with_cwd(p, cwd), PathBuf::from("/var/db.sqlite"));
+        assert_eq!(
+            resolve_db_path_with_cwd(p, cwd),
+            PathBuf::from("/var/db.sqlite")
+        );
     }
 
     #[test]

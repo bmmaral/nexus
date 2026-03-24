@@ -1,7 +1,7 @@
 //! Fixture-style `InventorySnapshot` cases for `resolve_clusters` (local + GitHub remote).
 
 use chrono::Utc;
-use nexus_core::{CloneRemoteLink, CloneRecord, InventorySnapshot, ManifestKind, RemoteRecord};
+use nexus_core::{CloneRecord, CloneRemoteLink, InventorySnapshot, ManifestKind, RemoteRecord};
 use nexus_plan::resolve_clusters;
 
 fn sample_clone(id: &str, name: &str) -> CloneRecord {

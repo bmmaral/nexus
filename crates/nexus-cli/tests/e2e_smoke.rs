@@ -22,10 +22,7 @@ fn scan_plan_report_json_pipeline() {
     let cfg = dir.path().join("nexus.toml");
     fs::write(
         &cfg,
-        format!(
-            "db_path = \"{}\"\ndefault_roots = []\n",
-            db.display()
-        ),
+        format!("db_path = \"{}\"\ndefault_roots = []\n", db.display()),
     )
     .expect("write nexus.toml");
 

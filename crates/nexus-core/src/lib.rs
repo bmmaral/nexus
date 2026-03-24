@@ -26,7 +26,8 @@ mod golden_plan_tests {
 
     #[test]
     fn plan_without_schema_version_defaults_to_v1() {
-        let raw = r#"{"generated_at":"2026-03-24T12:00:00Z","generated_by":"nexus 0.1.0","clusters":[]}"#;
+        let raw =
+            r#"{"generated_at":"2026-03-24T12:00:00Z","generated_by":"nexus 0.1.0","clusters":[]}"#;
         let doc: PlanDocument = serde_json::from_str(raw).expect("parse");
         assert_eq!(doc.schema_version, 1);
     }
