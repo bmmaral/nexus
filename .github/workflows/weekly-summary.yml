@@ -1,14 +1,19 @@
 name: Weekly Summary
+
 on:
   schedule:
-    - cron: '0 8 * * MON'
+    - cron: "0 8 * * MON"
   workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
 
 jobs:
   summary:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -44,7 +49,7 @@ jobs:
           fi
 
       - name: Create summary issue
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');

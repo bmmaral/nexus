@@ -10,5 +10,6 @@ axum.workspace = true
 nexus-db = { path = "../nexus-db" }
 nexus-plan = { path = "../nexus-plan" }
 serde_json.workspace = true
+tracing.workspace = true
 tokio.workspace = true
 tower-http.workspace = true

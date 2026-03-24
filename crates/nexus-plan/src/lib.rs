@@ -72,14 +72,14 @@ pub fn resolve_clusters(snapshot: &InventorySnapshot, merge_base: bool) -> Vec<C
         if let Some(rids) = clone_remote_ids.get(&clone.id) {
             for rid in rids {
                 if let Some(r) = remote_by_id.get(rid) {
-                    push_remote_unique(&mut buckets, &key, *r);
+                    push_remote_unique(&mut buckets, &key, r);
                 }
             }
         }
     }
 
     let mut remote_seen: HashSet<String> = HashSet::new();
-    for (_, (_, rs)) in &buckets {
+    for (_, rs) in buckets.values() {
         for r in rs {
             remote_seen.insert(r.id.clone());
         }
