@@ -75,7 +75,10 @@ enum Commands {
         port: u16,
     },
     /// Show which optional external tools are on PATH (Phase 10 adapters).
-    Tools,
+    Tools {
+        #[arg(long, default_value = "text")]
+        format: ToolsFormat,
+    },
     /// Write inventory JSON (optionally with a computed plan) for backup or `nexus import`.
     Export {
         #[arg(short = 'o', long)]
@@ -118,6 +121,13 @@ enum ReportFormat {
 enum DoctorFormat {
     Text,
     /// Stable JSON for scripts (`kind: "nexus_doctor"`).
+    Json,
+}
+
+#[derive(Debug, Clone, ValueEnum)]
+enum ToolsFormat {
+    Text,
+    /// JSON map of tool binary name → on PATH (`kind: "nexus_tools"`).
     Json,
 }
 
@@ -171,10 +181,7 @@ fn main() -> Result<()> {
             rt.block_on(nexus_api::serve(bundle.effective_db_path.clone(), port))?;
             Ok(())
         }
-        Commands::Tools => {
-            cmd_tools();
-            Ok(())
-        }
+        Commands::Tools { format } => cmd_tools(format),
         Commands::Export {
             output,
             with_plan,
@@ -489,11 +496,35 @@ fn cmd_report(db: &Database, format: ReportFormat) -> Result<()> {
     Ok(())
 }
 
-fn cmd_tools() {
-    println!("Optional external tools (on PATH):");
-    for (tool, ok) in nexus_adapters::probe_all() {
-        println!("  {:10} {}", tool.bin_name(), if ok { "yes" } else { "no" });
+fn cmd_tools(format: ToolsFormat) -> Result<()> {
+    let probes = nexus_adapters::probe_all();
+    match format {
+        ToolsFormat::Text => {
+            println!("Optional external tools (on PATH):");
+            for (tool, ok) in &probes {
+                println!(
+                    "  {:10} {}",
+                    tool.bin_name(),
+                    if *ok { "yes" } else { "no" }
+                );
+            }
+        }
+        ToolsFormat::Json => {
+            let tools: serde_json::Map<String, serde_json::Value> = probes
+                .into_iter()
+                .map(|(t, ok)| (t.bin_name().to_string(), serde_json::json!(ok)))
+                .collect();
+            let doc = serde_json::json!({
+                "schema_version": 1,
+                "kind": "nexus_tools",
+                "generated_at": Utc::now().to_rfc3339(),
+                "generated_by": format!("nexus {}", env!("CARGO_PKG_VERSION")),
+                "tools": tools,
+            });
+            println!("{}", serde_json::to_string_pretty(&doc)?);
+        }
     }
+    Ok(())
 }
 
 fn cmd_apply(db: &Database, dry_run: bool, format: ApplyFormat) -> Result<()> {

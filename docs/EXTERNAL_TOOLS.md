@@ -32,9 +32,10 @@ Run:
 
 ```bash
 nexus tools
+nexus tools --format json
 ```
 
-This prints which of the optional scanners were found on `PATH`.
+This prints which of the optional scanners were found on `PATH` (text table or `kind: "nexus_tools"` JSON for scripts).
 
 ## Timeouts
 

@@ -562,6 +562,7 @@ fn action_type_db(t: &ActionType) -> &'static str {
         ActionType::ReviewAmbiguousCluster => "review_ambiguous_cluster",
         ActionType::MergeDivergedClone => "merge_diverged_clone",
         ActionType::CreateRemoteRepo => "create_remote_repo",
+        ActionType::CloneLocalWorkspace => "clone_local_workspace",
         ActionType::AddMissingDocs => "add_missing_docs",
         ActionType::AddLicense => "add_license",
         ActionType::AddCi => "add_ci",

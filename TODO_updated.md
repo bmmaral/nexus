@@ -96,8 +96,8 @@ This TODO tracks the work needed to harden the CLI, formalize the scoring model,
   - [x] confidence (optional `confidence` on `PlanAction`)
   - [x] risk/trade-off note (optional `risk_note` on `PlanAction`)
 - [ ] Add explicit handling for:
-  - [ ] remote-only repos
-  - [ ] local-only repos
+  - [x] remote-only repos (`CloneLocalWorkspace` action + `remote_only_cluster` evidence)
+  - [x] local-only repos (`CreateRemoteRepo` + `no_remote_linked` / `local_only_cluster` evidence)
   - [ ] pivoted repos
   - [ ] stale-but-important repos
   - [ ] ambiguous duplicate clusters

@@ -11,7 +11,7 @@ These commands are the **intended stable surface** for repo fleet triage (names 
 | `plan` | Build clusters, scores, evidence, and **prioritized actions**; write `plan.json`; persist plan to SQLite |
 | `report` | Render markdown or JSON from the current inventory (plan recomputed in-process) |
 | `doctor` | Environment, toolchain, and DB checks (`--format json` for scripts) |
-| `tools` | Optional external adapters on `PATH` |
+| `tools` | Optional external adapters on `PATH` (`--format json` for scripts) |
 | `export` | JSON envelope with `inventory` (optional `--with-plan`) for backup or transfer |
 | `import` | Replace DB inventory from export JSON (clears persisted plan); requires `--force` |
 | `explain` | One cluster’s scores, evidence, and actions (by cluster query or clone/remote id) |
@@ -139,6 +139,14 @@ nexus serve --port 3030
 ### `nexus tools`
 
 Print whether optional external scanners are on `PATH`.
+
+- `--format text` (default) — two-column list.
+- `--format json` — `kind: "nexus_tools"` and a `tools` object (binary name → bool).
+
+```bash
+nexus tools
+nexus tools --format json
+```
 
 ### `nexus export`
 

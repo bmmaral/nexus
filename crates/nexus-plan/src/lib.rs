@@ -422,10 +422,29 @@ fn build_actions(
                 clone_id,
                 "Canonical local project has no linked remote",
                 ActionExtras {
-                    evidence_summary: Some("no remote rows linked from this cluster"),
+                    evidence_summary: Some("see `no_remote_linked` / `local_only_cluster` evidence"),
                     confidence: Some(0.45),
                     risk_note: Some(
                         "may be intentional offline work; verify before creating or linking remotes",
+                    ),
+                },
+            ));
+        }
+    }
+
+    if clones.is_empty() && !remotes.is_empty() {
+        if let Some(remote_id) = cluster.canonical_remote_id.clone() {
+            actions.push(plan_action(
+                Priority::Medium,
+                ActionType::CloneLocalWorkspace,
+                MemberKind::Remote,
+                remote_id,
+                "Remote-only cluster: add a local clone when you need filesystem scan or merge-base evidence",
+                ActionExtras {
+                    evidence_summary: Some("see `remote_only_cluster` evidence; no Clone members in cluster"),
+                    confidence: Some(0.55),
+                    risk_note: Some(
+                        "GitHub-only triage is still useful; cloning is optional unless you need local tooling",
                     ),
                 },
             ));

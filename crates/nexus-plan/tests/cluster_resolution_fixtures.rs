@@ -1,7 +1,10 @@
 //! Fixture-style `InventorySnapshot` cases for `resolve_clusters` (local + GitHub remote).
 
 use chrono::Utc;
-use nexus_core::{CloneRecord, CloneRemoteLink, InventorySnapshot, ManifestKind, RemoteRecord};
+use nexus_core::{
+    ActionType, CloneRecord, CloneRemoteLink, InventorySnapshot, ManifestKind, MemberKind,
+    RemoteRecord,
+};
 use nexus_plan::resolve_clusters;
 
 fn sample_clone(id: &str, name: &str) -> CloneRecord {
@@ -83,6 +86,14 @@ fn remote_only_unlinked_github_repo_is_single_cluster() {
     assert_eq!(plans.len(), 1);
     assert_eq!(plans[0].cluster.members.len(), 1);
     assert!(plans[0].cluster.cluster_key.starts_with("url:"));
+    assert!(
+        plans[0].actions.iter().any(|a| {
+            matches!(a.action_type, ActionType::CloneLocalWorkspace)
+                && a.target_kind == MemberKind::Remote
+        }),
+        "expected CloneLocalWorkspace for remote-only: {:?}",
+        plans[0].actions
+    );
 }
 
 #[test]
@@ -98,4 +109,12 @@ fn local_only_clone_without_remote_stays_name_clustered() {
     let plans = resolve_clusters(&snapshot, false);
     assert_eq!(plans.len(), 1);
     assert!(plans[0].cluster.cluster_key.starts_with("name:"));
+    assert!(
+        plans[0]
+            .actions
+            .iter()
+            .any(|a| matches!(a.action_type, ActionType::CreateRemoteRepo)),
+        "expected CreateRemoteRepo for local-only: {:?}",
+        plans[0].actions
+    );
 }

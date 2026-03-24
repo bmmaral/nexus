@@ -39,6 +39,8 @@ pub enum ActionType {
     ReviewAmbiguousCluster,
     MergeDivergedClone,
     CreateRemoteRepo,
+    /// Inventory has this remote but no local clone; clone locally when filesystem scans are needed.
+    CloneLocalWorkspace,
     AddMissingDocs,
     AddLicense,
     AddCi,

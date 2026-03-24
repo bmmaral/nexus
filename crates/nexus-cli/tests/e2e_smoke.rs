@@ -16,6 +16,24 @@ fn doctor_succeeds() {
 }
 
 #[test]
+fn tools_json_succeeds() {
+    let output = Command::new(nexus_exe())
+        .args(["tools", "--format", "json"])
+        .output()
+        .expect("spawn nexus tools --format json");
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("nexus_tools") && stdout.contains("jscpd"),
+        "tools json: {stdout}"
+    );
+}
+
+#[test]
 fn doctor_json_succeeds() {
     let output = Command::new(nexus_exe())
         .args(["doctor", "--format", "json"])

@@ -53,7 +53,7 @@ Each element of `clusters` is:
 | --- | --- |
 | `id` | string |
 | `priority` | `Low`, `Medium`, `High` |
-| `action_type` | Enum serialized as string, e.g. `MarkCanonical`, `ArchiveLocalDuplicate`, … |
+| `action_type` | Enum serialized as string, e.g. `MarkCanonical`, `ArchiveLocalDuplicate`, `CloneLocalWorkspace`, `CreateRemoteRepo`, … |
 | `target_kind` | `Clone` or `Remote` |
 | `target_id` | string |
 | `reason` | string |
