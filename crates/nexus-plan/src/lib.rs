@@ -543,7 +543,7 @@ mod tests {
             owner: Some("acme".into()),
             name: Some("proj".into()),
             full_name: Some("acme/proj".into()),
-            url: format!("https://github.com/acme/proj"),
+            url: "https://github.com/acme/proj".into(),
             normalized_url: norm.into(),
             default_branch: Some("main".into()),
             is_fork: false,
