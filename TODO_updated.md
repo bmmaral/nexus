@@ -142,7 +142,7 @@ This TODO tracks the work needed to harden the CLI, formalize the scoring model,
 ## P4 — Adapter ecosystem
 
 ### External tools
-- [ ] Add timeouts and graceful degradation for external tools
+- [x] Add timeouts and graceful degradation for external tools
 - [ ] Cache adapter outputs per run
 - [ ] Normalize adapter evidence into a shared schema
 - [ ] Decide which adapters are officially supported vs best effort

@@ -137,7 +137,7 @@ Print whether optional external scanners are on `PATH`.
 Writes JSON to stdout or `-o`/`--output`:
 
 - `schema_version`, `kind: "nexus_inventory_export_v1"`, `exported_at`, `generated_by`
-- `inventory` — same shape as the in-memory snapshot (`clones`, `remotes`, `links`; `run` is omitted when not loaded from DB today)
+- `inventory` — same shape as the in-memory snapshot (`clones`, `remotes`, `links`, and `run` when a row exists in SQLite — latest scan by `started_at`)
 - optional `plan` when `--with-plan` — fresh plan (same flags as `plan` for merge-base and external scanners; not written to disk or persisted)
 
 ```bash

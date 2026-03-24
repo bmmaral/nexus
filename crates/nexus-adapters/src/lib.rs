@@ -2,8 +2,11 @@
 use anyhow::Result;
 use nexus_core::{EvidenceItem, InventorySnapshot, MemberKind, PlanDocument};
 use std::collections::HashMap;
+use std::io::Read;
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Stdio};
+use std::thread;
+use std::time::{Duration, Instant};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExternalTool {
@@ -37,28 +40,89 @@ pub fn probe_all() -> Vec<(ExternalTool, bool)> {
     .collect()
 }
 
+/// Wall-clock limit per adapter invocation. Override with `NEXUS_ADAPTER_TIMEOUT_SECS` (1–86400).
+fn adapter_timeout() -> Duration {
+    const DEFAULT: Duration = Duration::from_secs(180);
+    std::env::var("NEXUS_ADAPTER_TIMEOUT_SECS")
+        .ok()
+        .and_then(|s| s.parse::<u64>().ok())
+        .filter(|&s| (1..=86_400).contains(&s))
+        .map(Duration::from_secs)
+        .unwrap_or(DEFAULT)
+}
+
 fn run_capture(bin: &str, args: &[&str], cwd: &Path) -> Option<(i32, String)> {
     let _ = which::which(bin).ok()?;
-    let out = Command::new(bin)
+    let timeout = adapter_timeout();
+
+    let mut child = Command::new(bin)
         .args(args)
         .current_dir(cwd)
-        .output()
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
         .ok()?;
-    let code = out.status.code().unwrap_or(-1);
-    let msg = if !out.stderr.is_empty() {
-        String::from_utf8_lossy(&out.stderr).trim().to_string()
-    } else {
-        String::from_utf8_lossy(&out.stdout).trim().to_string()
-    };
-    let short = msg.lines().next().unwrap_or("").to_string();
-    Some((
-        code,
-        if short.is_empty() {
-            format!("exit {code}")
-        } else {
-            short
-        },
-    ))
+
+    let stdout = child.stdout.take();
+    let stderr = child.stderr.take();
+
+    let stdout_handle = thread::spawn(move || {
+        let mut s = String::new();
+        if let Some(mut out) = stdout {
+            let _ = out.read_to_string(&mut s);
+        }
+        s
+    });
+    let stderr_handle = thread::spawn(move || {
+        let mut s = String::new();
+        if let Some(mut err) = stderr {
+            let _ = err.read_to_string(&mut s);
+        }
+        s
+    });
+
+    let start = Instant::now();
+    loop {
+        let waited = match child.try_wait() {
+            Ok(s) => s,
+            Err(_) => return None,
+        };
+        match waited {
+            Some(status) => {
+                let code = status.code().unwrap_or(-1);
+                let stdout = stdout_handle.join().unwrap_or_default();
+                let stderr = stderr_handle.join().unwrap_or_default();
+                let msg = if !stderr.trim().is_empty() {
+                    stderr.trim().to_string()
+                } else {
+                    stdout.trim().to_string()
+                };
+                let short = msg.lines().next().unwrap_or("").to_string();
+                return Some((
+                    code,
+                    if short.is_empty() {
+                        format!("exit {code}")
+                    } else {
+                        short
+                    },
+                ));
+            }
+            None => {
+                if start.elapsed() >= timeout {
+                    if let Err(e) = child.kill() {
+                        tracing::warn!(tool = %bin, error = %e, "failed to kill timed-out adapter");
+                    }
+                    let _ = child.wait();
+                    let _ = stdout_handle.join();
+                    let _ = stderr_handle.join();
+                    let secs = timeout.as_secs();
+                    tracing::warn!(tool = %bin, seconds = secs, "external adapter timed out");
+                    return Some((124, format!("timed out after {secs}s")));
+                }
+                thread::sleep(Duration::from_millis(50));
+            }
+        }
+    }
 }
 
 /// Append lightweight evidence rows for each cluster’s canonical clone when tools exist.

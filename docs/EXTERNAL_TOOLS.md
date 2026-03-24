@@ -35,3 +35,13 @@ nexus tools
 ```
 
 This prints which of the optional scanners were found on `PATH`.
+
+## Timeouts
+
+Each adapter subprocess is limited to **180 seconds** by default. If a tool hangs, Nexus kills it and records evidence such as `timed out after 180s` instead of blocking `plan --external` indefinitely.
+
+Override with `NEXUS_ADAPTER_TIMEOUT_SECS` (integer seconds, 1–86400), for example:
+
+```bash
+NEXUS_ADAPTER_TIMEOUT_SECS=300 nexus plan --write plan.json --external
+```

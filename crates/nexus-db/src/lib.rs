@@ -259,8 +259,10 @@ impl Database {
             })?
             .collect::<rusqlite::Result<Vec<_>>>()?;
 
+        let run = load_latest_run(&self.conn).context("load latest run")?;
+
         Ok(InventorySnapshot {
-            run: None,
+            run,
             clones,
             remotes,
             links,
@@ -485,6 +487,49 @@ impl Database {
         tx.commit().context("commit persist_plan")?;
         Ok(())
     }
+}
+
+fn load_latest_run(conn: &rusqlite::Connection) -> Result<Option<RunRecord>> {
+    let mut stmt = conn
+        .prepare(
+            r#"
+            SELECT id, started_at, finished_at, roots_json, github_owner, version
+            FROM runs
+            ORDER BY datetime(started_at) DESC
+            LIMIT 1
+            "#,
+        )
+        .context("prepare latest run query")?;
+
+    let mut rows = stmt.query([]).context("query latest run")?;
+    let Some(row) = rows.next()? else {
+        return Ok(None);
+    };
+
+    let started: String = row.get(1)?;
+    let started_at = chrono::DateTime::parse_from_rfc3339(&started)
+        .map(|d| d.with_timezone(&Utc))
+        .context("parse run.started_at")?;
+
+    let finished_at = row
+        .get::<_, Option<String>>(2)?
+        .map(|s| chrono::DateTime::parse_from_rfc3339(&s))
+        .transpose()
+        .context("parse run.finished_at")?
+        .map(|d| d.with_timezone(&Utc));
+
+    let roots_json: String = row.get(3)?;
+    let roots: Vec<String> =
+        serde_json::from_str(&roots_json).context("deserialize run.roots_json")?;
+
+    Ok(Some(RunRecord {
+        id: row.get(0)?,
+        started_at,
+        finished_at,
+        roots,
+        github_owner: row.get(4)?,
+        version: row.get(5)?,
+    }))
 }
 
 fn cluster_status_db(s: &ClusterStatus) -> &'static str {

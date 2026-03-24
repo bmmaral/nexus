@@ -37,6 +37,7 @@ fn replace_inventory_roundtrip() {
     db.replace_inventory_snapshot(&snap, "test")
         .expect("replace");
     let loaded = db.load_inventory().expect("load");
+    assert!(loaded.run.is_some(), "import/replace inserts a synthetic run");
     assert_eq!(loaded.clones.len(), 1);
     assert_eq!(loaded.clones[0].id, "c1");
     assert_eq!(loaded.clones[0].path, "/tmp/a");
