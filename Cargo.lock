@@ -959,6 +959,7 @@ dependencies = [
  "anyhow",
  "directories",
  "serde",
+ "tempfile",
  "toml",
 ]
 

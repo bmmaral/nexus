@@ -89,7 +89,7 @@ Nexus is a **Rust-first repository fleet intelligence CLI** (`crates/`). This fi
 ## P2 — Core engine hardening
 
 ### Inventory and identity resolution
-- [ ] Add stronger remote URL normalization rules
+- [x] Add stronger remote URL normalization rules
 - [ ] Add merge-base evidence as a first-class scoring signal
 - [ ] Add support for manual cluster pinning / overrides in config
 - [ ] Add better duplicate-detection heuristics beyond name matching
@@ -121,9 +121,9 @@ Nexus is a **Rust-first repository fleet intelligence CLI** (`crates/`). This fi
   - [x] `scan`
   - [x] `plan`
   - [x] `report`
-- [ ] Add fixture-based tests for local+remote cluster resolution
+- [x] Add fixture-based tests for local+remote cluster resolution
 - [x] Add snapshot tests for markdown reports (`nexus-report` insta test)
-- [ ] Add regression tests for path normalization and config precedence
+- [x] Add regression tests for path normalization and config precedence
 - [x] Add tests for external adapter absence/failure cases (existing adapter tests)
 
 ### CI/CD
