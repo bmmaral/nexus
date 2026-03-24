@@ -258,7 +258,7 @@ impl Database {
     }
 
     /// Replaces clustering / plan tables with a fresh plan snapshot (v1 is recompute-only).
-    pub fn persist_plan(&self, plan: &PlanDocument) -> Result<()> {
+    pub fn persist_plan(&mut self, plan: &PlanDocument) -> Result<()> {
         let now = Utc::now().to_rfc3339();
         let tx = self
             .conn

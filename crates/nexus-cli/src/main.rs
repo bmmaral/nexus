@@ -69,7 +69,7 @@ fn main() -> Result<()> {
 
     let cli = Cli::parse();
     let bundle = ConfigBundle::load(cli.config.as_deref())?;
-    let db = Database::open(&bundle.effective_db_path)?;
+    let mut db = Database::open(&bundle.effective_db_path)?;
 
     match cli.command {
         Commands::Scan {
@@ -80,7 +80,7 @@ fn main() -> Result<()> {
             write,
             no_merge_base,
             external,
-        } => cmd_plan(&db, &write, no_merge_base, external),
+        } => cmd_plan(&mut db, &write, no_merge_base, external),
         Commands::Report { format } => cmd_report(&db, format),
         Commands::Doctor => cmd_doctor(&bundle),
         Commands::Apply { dry_run } => cmd_apply(&db, dry_run),
@@ -218,7 +218,7 @@ fn cmd_scan(
     Ok(())
 }
 
-fn cmd_plan(db: &Database, write: &Path, no_merge_base: bool, external: bool) -> Result<()> {
+fn cmd_plan(db: &mut Database, write: &Path, no_merge_base: bool, external: bool) -> Result<()> {
     let snapshot = db.load_inventory()?;
     let opts = nexus_plan::PlanBuildOpts {
         merge_base: !no_merge_base,
