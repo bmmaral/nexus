@@ -120,11 +120,11 @@ This TODO tracks the work needed to harden the CLI, formalize the scoring model,
 - [x] Add clear warning language for ambiguous plans and low-confidence scores (report **Warnings** section)
 
 ### New commands
-- [ ] Add `nexus explain <cluster|repo|clone>`
-  - [ ] deterministic explanation without AI
+- [x] Add `nexus explain` (`cluster` | `clone` | `remote`; text/json)
+  - [x] deterministic explanation without AI
   - [ ] optional AI-enhanced explanation when configured
-- [ ] Add `nexus export`
-- [ ] Add `nexus import` for saved inventory state / cross-machine comparison
+- [x] Add `nexus export`
+- [x] Add `nexus import` for saved inventory state / cross-machine comparison
 - [ ] Decide whether `nexus suggest` ships in v1.x or later
 
 ### TUI

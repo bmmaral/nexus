@@ -133,14 +133,13 @@ Core commands for v1:
 - `nexus report` — human/machine reports
 - `nexus doctor`
 - `nexus tools`
+- `nexus explain` — deterministic per-cluster view (text/JSON)
+- `nexus export` / `nexus import` — inventory JSON backup and full DB inventory replace (clears persisted plan)
 
 Planned commands after the core is stable:
 
 - `nexus tui`
-- `nexus explain`
 - `nexus suggest` (AI-assisted, optional)
-- `nexus export`
-- `nexus import`
 
 ### Secondary interface: TUI
 
@@ -362,10 +361,10 @@ Therefore:
 ### Planned next layer
 
 - `tui`: interactive inspection and overrides
-- `explain`: deterministic + optional AI explanation
 - `suggest`: AI-assisted suggestions grounded in existing evidence
-- `export`: export plans, scores, and inventory snapshots
-- `import`: import saved inventory state for comparison/cross-machine use
+- optional AI-enhanced explanation layered on **`explain`** (deterministic CLI shipped)
+
+**Shipped alongside core:** `export` / `import` (inventory JSON envelope; optional `--with-plan`); deterministic `explain`.
 
 ### Not a priority
 
@@ -438,7 +437,7 @@ Goal: improve explanation and suggestions.
 
 Ship:
 
-- `explain`
+- optional AI on top of deterministic `explain` (CLI `explain` shipped)
 - `suggest`
 - OpenAI-compatible endpoint config
 - strict grounding in deterministic Nexus output

@@ -39,6 +39,7 @@ nexus report --format md
 nexus apply --dry-run
 nexus doctor
 nexus tools
+# optional: nexus export -o backup.json && nexus import backup.json --force
 ```
 
 **Sample `report` output shape (markdown):** title `Nexus Report`, run metadata, then per cluster: scores, evidence, proposed actions (descriptive only; no automatic mutations).
@@ -57,6 +58,9 @@ nexus tools
 | `tools` | Which optional scanners are on `PATH` |
 | `apply --dry-run` | Count proposed actions (read-only preview; mutating apply disabled) |
 | `serve` | **Experimental** read-only JSON API over local SQLite (not a dashboard; unstable API) |
+| `export` | JSON inventory (optional embedded plan via `--with-plan`) |
+| `import` | Restore inventory from export JSON; clears persisted plan (`--force` required) |
+| `explain` | One cluster: scores, evidence, actions (`cluster` / `clone` / `remote` subcommands) |
 
 ## Crate layout
 

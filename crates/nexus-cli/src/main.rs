@@ -1,3 +1,5 @@
+mod explain;
+
 use anyhow::{Context, Result};
 use chrono::Utc;
 use clap::{Parser, Subcommand, ValueEnum};
@@ -69,6 +71,36 @@ enum Commands {
     },
     /// Show which optional external tools are on PATH (Phase 10 adapters).
     Tools,
+    /// Write inventory JSON (optionally with a computed plan) for backup or `nexus import`.
+    Export {
+        #[arg(short = 'o', long)]
+        output: Option<PathBuf>,
+        /// Include a freshly computed plan (same inputs as `plan`, not written to disk or persisted).
+        #[arg(long)]
+        with_plan: bool,
+        #[arg(long)]
+        no_merge_base: bool,
+        #[arg(long)]
+        external: bool,
+    },
+    /// Replace DB inventory from `nexus export` JSON (clears persisted plan). Requires `--force`.
+    Import {
+        #[arg(value_name = "FILE")]
+        path: PathBuf,
+        #[arg(long)]
+        force: bool,
+    },
+    /// Print scores, evidence, and actions for one cluster (by cluster query or member id).
+    Explain {
+        #[arg(long)]
+        no_merge_base: bool,
+        #[arg(long)]
+        external: bool,
+        #[arg(long, default_value = "text")]
+        format: explain::ExplainFormat,
+        #[command(subcommand)]
+        target: explain::ExplainTarget,
+    },
 }
 
 #[derive(Debug, Clone, ValueEnum)]
@@ -124,6 +156,19 @@ fn main() -> Result<()> {
             cmd_tools();
             Ok(())
         }
+        Commands::Export {
+            output,
+            with_plan,
+            no_merge_base,
+            external,
+        } => cmd_export(&db, with_plan, no_merge_base, external, output),
+        Commands::Import { path, force } => cmd_import(&mut db, &path, force),
+        Commands::Explain {
+            no_merge_base,
+            external,
+            format,
+            target,
+        } => cmd_explain(&db, target, format, no_merge_base, external),
     }
 }
 
@@ -244,6 +289,95 @@ fn cmd_scan(
     println!("clone↔remote links: {}", links.len());
     println!("db: {}", bundle.effective_db_path.display());
     Ok(())
+}
+
+fn parse_inventory_import(bytes: &[u8]) -> Result<InventorySnapshot> {
+    let v: serde_json::Value = serde_json::from_slice(bytes).context(
+        "parse JSON (expected export envelope with `inventory` or a raw inventory object)",
+    )?;
+    if let Some(inv) = v.get("inventory") {
+        serde_json::from_value(inv.clone()).context("deserialize `inventory` field")
+    } else {
+        serde_json::from_value(v).context("deserialize inventory snapshot")
+    }
+}
+
+fn cmd_export(
+    db: &Database,
+    with_plan: bool,
+    no_merge_base: bool,
+    external: bool,
+    output: Option<PathBuf>,
+) -> Result<()> {
+    let snapshot = db.load_inventory()?;
+    let plan_json = if with_plan {
+        let opts = nexus_plan::PlanBuildOpts {
+            merge_base: !no_merge_base,
+        };
+        let mut plan = nexus_plan::build_plan_with(&snapshot, opts)?;
+        if external {
+            nexus_adapters::attach_external_evidence(&mut plan, &snapshot)?;
+        }
+        Some(plan)
+    } else {
+        None
+    };
+
+    let mut doc = serde_json::json!({
+        "schema_version": 1,
+        "kind": "nexus_inventory_export_v1",
+        "exported_at": Utc::now().to_rfc3339(),
+        "generated_by": format!("nexus {}", env!("CARGO_PKG_VERSION")),
+        "inventory": snapshot,
+    });
+    if let Some(p) = plan_json {
+        doc["plan"] = serde_json::to_value(&p)?;
+    }
+
+    let json = serde_json::to_string_pretty(&doc)?;
+    match output {
+        Some(path) => {
+            fs::write(&path, json).with_context(|| format!("failed to write {}", path.display()))?
+        }
+        None => println!("{json}"),
+    }
+    Ok(())
+}
+
+fn cmd_import(db: &mut Database, path: &Path, force: bool) -> Result<()> {
+    anyhow::ensure!(
+        force,
+        "import replaces all inventory and clears the persisted plan; pass `--force` to confirm"
+    );
+    let bytes = fs::read(path).with_context(|| format!("failed to read {}", path.display()))?;
+    let snapshot = parse_inventory_import(&bytes)?;
+    db.replace_inventory_snapshot(&snapshot, env!("CARGO_PKG_VERSION"))
+        .context("replace inventory")?;
+    println!(
+        "imported {} clones, {} remotes, {} links",
+        snapshot.clones.len(),
+        snapshot.remotes.len(),
+        snapshot.links.len()
+    );
+    Ok(())
+}
+
+fn cmd_explain(
+    db: &Database,
+    target: explain::ExplainTarget,
+    format: explain::ExplainFormat,
+    no_merge_base: bool,
+    external: bool,
+) -> Result<()> {
+    let snapshot = db.load_inventory()?;
+    let opts = nexus_plan::PlanBuildOpts {
+        merge_base: !no_merge_base,
+    };
+    let mut plan = nexus_plan::build_plan_with(&snapshot, opts)?;
+    if external {
+        nexus_adapters::attach_external_evidence(&mut plan, &snapshot)?;
+    }
+    explain::run_explain(&snapshot, &plan, target, format)
 }
 
 fn cmd_score(

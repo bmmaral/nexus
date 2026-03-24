@@ -8,6 +8,7 @@ use nexus_core::{
     ActionType, CloneRecord, CloneRemoteLink, ClusterStatus, InventorySnapshot, MemberKind,
     PlanDocument, Priority, RemoteRecord, RunRecord,
 };
+use uuid::Uuid;
 
 pub const MIGRATION_0001: &str = include_str!("../../../migrations/0001_init.sql");
 
@@ -57,6 +58,15 @@ impl Database {
             )
             .context("failed to inspect sqlite_master")?;
         Ok(n > 0)
+    }
+
+    /// Rows in the `clusters` table (persisted plan). Useful after `import` / `replace_inventory_snapshot`.
+    pub fn cluster_count(&self) -> Result<u64> {
+        let n: i64 = self
+            .conn
+            .query_row("SELECT COUNT(*) FROM clusters", [], |row| row.get(0))
+            .context("count clusters")?;
+        Ok(n as u64)
     }
 
     pub fn save_run(&self, run: &RunRecord) -> Result<()> {
@@ -255,6 +265,134 @@ impl Database {
             remotes,
             links,
         })
+    }
+
+    /// Wipes plan tables, clone/remote/link rows, and all runs, then inserts the snapshot
+    /// (synthetic [`RunRecord`] when `snapshot.run` is `None`). Use for `nexus import`.
+    pub fn replace_inventory_snapshot(
+        &mut self,
+        snapshot: &InventorySnapshot,
+        app_version: &str,
+    ) -> Result<()> {
+        let now = Utc::now().to_rfc3339();
+        let tx = self
+            .conn
+            .transaction()
+            .context("begin replace_inventory_snapshot transaction")?;
+
+        tx.execute("DELETE FROM actions", [])
+            .context("delete actions")?;
+        tx.execute("DELETE FROM evidence", [])
+            .context("delete evidence")?;
+        tx.execute("DELETE FROM cluster_members", [])
+            .context("delete cluster_members")?;
+        tx.execute("DELETE FROM clusters", [])
+            .context("delete clusters")?;
+        tx.execute("DELETE FROM clone_remote_links", [])
+            .context("delete clone_remote_links")?;
+        tx.execute("DELETE FROM clones", [])
+            .context("delete clones")?;
+        tx.execute("DELETE FROM remotes", [])
+            .context("delete remotes")?;
+        tx.execute("DELETE FROM runs", []).context("delete runs")?;
+
+        let run = snapshot.run.clone().unwrap_or_else(|| RunRecord {
+            id: format!("import-{}", Uuid::new_v4()),
+            started_at: Utc::now(),
+            finished_at: Some(Utc::now()),
+            roots: vec!["<nexus import>".to_string()],
+            github_owner: None,
+            version: app_version.to_string(),
+        });
+
+        tx.execute(
+            r#"
+            INSERT OR REPLACE INTO runs (id, started_at, finished_at, roots_json, github_owner, version, stats_json)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+            "#,
+            params![
+                run.id,
+                run.started_at.to_rfc3339(),
+                run.finished_at.map(|dt| dt.to_rfc3339()),
+                serde_json::to_string(&run.roots)?,
+                run.github_owner,
+                run.version,
+                Option::<String>::None
+            ],
+        )
+        .context("insert run")?;
+
+        for clone in &snapshot.clones {
+            tx.execute(
+                r#"
+                INSERT OR REPLACE INTO clones
+                (id, repo_id, path, display_name, is_git, head_oid, active_branch, default_branch, is_dirty,
+                 last_commit_at, size_bytes, manifest_kind, readme_title, license_spdx, fingerprint,
+                 scan_run_id, created_at, updated_at)
+                VALUES (?1, NULL, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?16)
+                "#,
+                params![
+                    clone.id,
+                    clone.path,
+                    clone.display_name,
+                    clone.is_git as i32,
+                    clone.head_oid,
+                    clone.active_branch,
+                    clone.default_branch,
+                    clone.is_dirty as i32,
+                    clone.last_commit_at.map(|dt| dt.to_rfc3339()),
+                    clone.size_bytes.map(|v| v as i64),
+                    clone.manifest_kind.as_ref().map(|m| format!("{m:?}")),
+                    clone.readme_title,
+                    clone.license_spdx,
+                    clone.fingerprint,
+                    run.id,
+                    now
+                ],
+            )
+            .context("insert clone")?;
+        }
+
+        for remote in &snapshot.remotes {
+            tx.execute(
+                r#"
+                INSERT OR REPLACE INTO remotes
+                (id, repo_id, provider, owner, name, full_name, url, normalized_url, default_branch,
+                 is_fork, is_archived, is_private, pushed_at, created_at, updated_at)
+                VALUES (?1, NULL, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?14)
+                "#,
+                params![
+                    remote.id,
+                    remote.provider,
+                    remote.owner,
+                    remote.name,
+                    remote.full_name,
+                    remote.url,
+                    remote.normalized_url,
+                    remote.default_branch,
+                    remote.is_fork as i32,
+                    remote.is_archived as i32,
+                    remote.is_private as i32,
+                    remote.pushed_at.map(|dt| dt.to_rfc3339()),
+                    now
+                ],
+            )
+            .context("insert remote")?;
+        }
+
+        for link in &snapshot.links {
+            tx.execute(
+                r#"
+                INSERT INTO clone_remote_links (clone_id, remote_id, relationship)
+                VALUES (?1, ?2, ?3)
+                "#,
+                params![link.clone_id, link.remote_id, link.relationship],
+            )
+            .context("insert clone_remote_link")?;
+        }
+
+        tx.commit().context("commit replace_inventory_snapshot")?;
+        Ok(())
     }
 
     /// Replaces clustering / plan tables with a fresh plan snapshot (v1 is recompute-only).

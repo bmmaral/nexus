@@ -32,7 +32,7 @@ Pure domain types and shared enums.
 Config file loading and defaults.
 
 ### `nexus-db`
-SQLite connection and persistence boundary.
+SQLite connection and persistence boundary. Full inventory replace (`replace_inventory_snapshot`) backs **`nexus import`** and clears persisted plan rows.
 
 ### `nexus-scan`
 Filesystem scanning and project metadata extraction.

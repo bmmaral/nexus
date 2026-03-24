@@ -12,6 +12,9 @@ These commands are the **intended stable surface** for repo fleet triage (names 
 | `report` | Render markdown or JSON from the current inventory (plan recomputed in-process) |
 | `doctor` | Environment, toolchain, and DB checks |
 | `tools` | Optional external adapters on `PATH` |
+| `export` | JSON envelope with `inventory` (optional `--with-plan`) for backup or transfer |
+| `import` | Replace DB inventory from export JSON (clears persisted plan); requires `--force` |
+| `explain` | One cluster’s scores, evidence, and actions (by cluster query or clone/remote id) |
 
 **Helpers / previews**
 
@@ -20,7 +23,7 @@ These commands are the **intended stable surface** for repo fleet triage (names 
 | `apply --dry-run` | Read-only preview: counts clusters and proposed actions. **Mutating apply is not implemented**; omitting `--dry-run` exits with an error. Stays as the v1 preview mechanism (not folded into `plan`/`report`). |
 | `serve` | **Experimental** read-only JSON over local SQLite for scripting. **Not** a dashboard, not multi-user, **unstable API** until release notes say otherwise. May move behind a feature flag later; default product remains the CLI. |
 
-New subcommands (e.g. `explain`, `export`, `import`, `tui`) may be added alongside the core without removing these in v1.x.
+New subcommands (e.g. `tui`) may be added alongside the core without removing these in v1.x.
 
 See `docs/PRODUCT_STRATEGY.md` for roadmap and non-goals.
 
@@ -129,11 +132,40 @@ nexus serve --port 3030
 
 Print whether optional external scanners are on `PATH`.
 
+### `nexus export`
+
+Writes JSON to stdout or `-o`/`--output`:
+
+- `schema_version`, `kind: "nexus_inventory_export_v1"`, `exported_at`, `generated_by`
+- `inventory` — same shape as the in-memory snapshot (`clones`, `remotes`, `links`; `run` is omitted when not loaded from DB today)
+- optional `plan` when `--with-plan` — fresh plan (same flags as `plan` for merge-base and external scanners; not written to disk or persisted)
+
+```bash
+nexus export -o backup.json
+nexus export --with-plan --external -o snapshot.json
+```
+
+### `nexus import`
+
+Replaces **all** runs, clones, remotes, links, and **clears** persisted plan tables (`clusters`, `evidence`, `actions`, …). Expects either the export envelope (`inventory` key) or a raw `InventorySnapshot` JSON object. Requires `--force`.
+
+```bash
+nexus import backup.json --force
+```
+
+### `nexus explain`
+
+Subcommands: `cluster <ID_OR_LABEL>`, `clone <CLONE_ID>`, `remote <REMOTE_ID>`. Resolves a cluster (exact id, case-insensitive label, or unique substring for `cluster`), then prints text or `--format json`. Uses the same `--no-merge-base` and `--external` switches as `score`/`plan`.
+
+```bash
+nexus explain cluster my-repo
+nexus explain clone clone-abc --format json
+```
+
 ## Planned next-layer commands
 
 (Not necessarily in the first tagged v1 release.)
 
 - `nexus tui` — minimal terminal UI for browsing clusters, sorting by score, overrides (see `docs/PRODUCT_STRATEGY.md`)
-- `nexus explain <cluster|repo|clone>` — deterministic explanation; optional AI layer later
 - `nexus suggest` — AI-assisted suggestions grounded in Nexus output (optional)
-- `nexus export` / `nexus import` — saved inventory / cross-machine comparison
+- Optional **AI**-enhanced natural language on top of deterministic `explain` (see `docs/PRODUCT_STRATEGY.md`)
