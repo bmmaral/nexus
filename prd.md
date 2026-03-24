@@ -10,6 +10,8 @@ last_updated: 2025-10-27
 tags: [PRD, MVP, Git-Native, AI-Integration, Project-Management, Developer-Tools]
 ---
 
+> **Note (2026):** This document describes the archived **v1 “project memory”** product (Python/TypeScript). The maintained codebase on `main` is the **Rust** CLI under `crates/`; see `README.md`, `docs/ARCHITECTURE.md`, and `docs/LEGACY_V1.md`.
+
 ## 📋 Changelog
 
 | Date | Version | Changes | Affected IDs |

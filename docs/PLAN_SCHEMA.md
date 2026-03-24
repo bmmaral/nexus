@@ -1,39 +1,67 @@
-# Plan schema
+# Plan JSON (`plan.json`)
+
+Machine-readable plans use **`schema_version`** `1` (integer). Older files without this field deserialize as version `1`.
+
+Top-level object:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `schema_version` | number | Format version; always `1` for this shape |
+| `generated_at` | string | RFC 3339 UTC timestamp |
+| `generated_by` | string | Producer string, e.g. `nexus 0.1.0` |
+| `clusters` | array | One entry per `ClusterPlan` |
+
+Each element of `clusters` is:
 
 ```json
 {
-  "generated_at": "2026-03-24T12:00:00Z",
-  "generated_by": "nexus 0.1.0",
-  "clusters": [
-    {
-      "cluster_id": "cluster-001",
-      "label": "nexus",
-      "confidence": 0.91,
-      "canonical_clone_id": "clone-123",
-      "canonical_remote_id": "remote-456",
-      "scores": {
-        "canonical": 91,
-        "usability": 67,
-        "oss_readiness": 43,
-        "risk": 28
-      },
-      "actions": [
-        {
-          "priority": "high",
-          "action_type": "archive_local_duplicate",
-          "target_kind": "clone",
-          "target_id": "clone-789",
-          "reason": "older duplicate with lower canonical score"
-        }
-      ],
-      "evidence": [
-        {
-          "kind": "remote_url_match",
-          "delta": 25,
-          "detail": "matched origin to demo/example"
-        }
-      ]
-    }
-  ]
+  "cluster": { ... ClusterRecord ... },
+  "actions": [ ... PlanAction ... ]
 }
 ```
+
+### `ClusterRecord`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | Stable cluster id |
+| `cluster_key` | string | Dedup key (e.g. normalized URL bucket) |
+| `label` | string | Human label |
+| `status` | string | `Resolved`, `Ambiguous`, or `ManualReview` |
+| `confidence` | number | 0.0–1.0 style confidence |
+| `canonical_clone_id` | string or null | |
+| `canonical_remote_id` | string or null | |
+| `members` | array | `{ "kind": "Clone" \| "Remote", "id": "..." }` |
+| `evidence` | array | See below |
+| `scores` | object | `canonical`, `usability`, `oss_readiness`, `risk` (numbers) |
+
+### `EvidenceItem`
+
+| Field | Type |
+| --- | --- |
+| `id` | string |
+| `subject_kind` | `Clone` or `Remote` |
+| `subject_id` | string |
+| `kind` | string (e.g. `remote_url_match`, adapter-specific kinds) |
+| `score_delta` | number |
+| `detail` | string |
+
+### `PlanAction`
+
+| Field | Type |
+| --- | --- |
+| `id` | string |
+| `priority` | `Low`, `Medium`, `High` |
+| `action_type` | Enum serialized as string, e.g. `MarkCanonical`, `ArchiveLocalDuplicate`, … |
+| `target_kind` | `Clone` or `Remote` |
+| `target_id` | string |
+| `reason` | string |
+| `commands` | array of strings (often empty in read-only mode) |
+
+### Example (excerpt)
+
+See `fixtures/golden/plan-v1.json` for a full round-trippable example.
+
+## Stability
+
+For **v0.x**, command names and flags are intentionally conservative; `plan.json` may gain optional fields in backward-compatible ways. Breaking changes will bump `schema_version` and be noted in `CHANGELOG.md`.

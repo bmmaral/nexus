@@ -12,6 +12,7 @@ mod golden_plan_tests {
     fn golden_plan_fixture_roundtrips() {
         let raw = include_str!("../../../fixtures/golden/plan-v1.json");
         let doc: PlanDocument = serde_json::from_str(raw).expect("parse golden fixture");
+        assert_eq!(doc.schema_version, 1);
         assert_eq!(doc.generated_by, "nexus 0.1.0");
         assert_eq!(doc.clusters.len(), 1);
         let serialized = serde_json::to_string(&doc).expect("serialize");
@@ -21,5 +22,12 @@ mod golden_plan_tests {
             doc2.clusters[0].cluster.label,
             doc.clusters[0].cluster.label
         );
+    }
+
+    #[test]
+    fn plan_without_schema_version_defaults_to_v1() {
+        let raw = r#"{"generated_at":"2026-03-24T12:00:00Z","generated_by":"nexus 0.1.0","clusters":[]}"#;
+        let doc: PlanDocument = serde_json::from_str(raw).expect("parse");
+        assert_eq!(doc.schema_version, 1);
     }
 }

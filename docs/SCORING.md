@@ -27,6 +27,22 @@ A higher score means "this is most likely the source of truth for the project cl
 - release/license/changelog signals: 5
 - manual override: 5
 
+### Worked examples (canonical)
+
+These are illustrative; exact `kind` strings and deltas come from the planner implementation.
+
+1. **Strong GitHub match**  
+   Two local clones share `origin` normalized to `https://github.com/acme/widget.git`, and a `gh` ingest row matches the same URL. Evidence might include `remote_url_match` with a large positive delta and detail naming the host and repo.
+
+2. **Freshness tie-break**  
+   Same remote, two clones: one pushed last week, one idle for a year. Expect `fresh_commit` (or similar) favoring the active clone, with detail citing commit timestamps.
+
+3. **Ambiguous duplicates**  
+   Two folders with similar names but no shared remote and fuzzy overlap only. Cluster `status` trends toward `Ambiguous` or `ManualReview`, risk score rises, and canonical confidence stays lower.
+
+4. **Remote-only cluster**  
+   A GitHub repo with no local clone still forms a cluster; canonical clone may be empty while canonical remote is set, and actions may suggest “add local checkout” style items (read-only plan text).
+
 ## Usability score (0–100)
 
 A higher score means "this repo is easier to build, reason about, and continue."

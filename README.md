@@ -1,70 +1,81 @@
 # Nexus
 
-This repository is transitioning to **Nexus v2**: a local-first **repository fleet intelligence** CLI (Rust) that inventories local and GitHub repos, resolves identity clusters, scores them, and emits a deterministic plan—without mutating your trees.
+**Nexus** is a local-first **repository fleet intelligence** CLI: it scans directories for git repos, ingests GitHub metadata (via `gh`), groups clones and remotes into **clusters**, scores them, and writes a deterministic **plan**—without modifying your working trees.
 
-See `docs/ARCHITECTURE.md`, `docs/SCORING.md`, `docs/CLI.md`, and `TODO.md`.
+**Before:** dozens of checkouts and remotes with unclear “source of truth,” risky for humans and agents. **After:** one SQLite-backed inventory, a reproducible `plan.json`, and human-readable reports you can diff and review.
 
-## Nexus v2 (Rust CLI)
+See `docs/ARCHITECTURE.md`, `docs/SCORING.md`, `docs/CLI.md`, `docs/PLAN_SCHEMA.md`, `docs/CONFIG.md`, `docs/EXTERNAL_TOOLS.md`, and `TODO.md`.
 
-### Requirements
+## Install / build
 
 - [Rust](https://rustup.rs/) stable (see `rust-toolchain.toml`)
-- **C toolchain for build scripts:** on macOS, **Xcode Command Line Tools** (`xcode-select --install`); on Linux, `build-essential` (or your distro’s equivalent) so `cc` can compile SQLite for `rusqlite`.
-- `git` on `PATH` (for repo metadata)
-- Optional: `gh` CLI (for `scan` with `--github-owner`)
-
-### Build and run
+- **C toolchain** for `rusqlite` (bundled SQLite): macOS Xcode CLT (`xcode-select --install`); Linux `build-essential` or equivalent
+- `git` on `PATH`
+- Optional: `gh` for `scan --github-owner` (see `docs/EXTERNAL_TOOLS.md`)
 
 ```bash
-cargo build -p nexus-cli
-cargo run -p nexus-cli -- doctor
+cargo build --release -p nexus-cli
+# binary: target/release/nexus
 ```
 
-Optional: [just](https://github.com/casey/just) recipes mirror these commands (`just test`, `just build`, `just doctor`, …).
+Or debug: `cargo build -p nexus-cli` → `target/debug/nexus`.
 
-The CLI binary name is **`nexus`** (`target/debug/nexus` or `target/release/nexus` on the host triple; cross-compiles land under `target/<triple>/…`).
+Optional: [just](https://github.com/casey/just) recipes (`just test`, `just build`, …).
 
-### Commands
+## Example workflow
 
 ```bash
-nexus scan ~/Projects ~/code --github-owner your-github-login
+cp nexus.toml.example nexus.toml   # edit db_path / default_roots / github_owner
+nexus scan ~/Projects --github-owner your-login
 nexus plan --write nexus-plan.json
 nexus report --format md
 nexus apply --dry-run
 nexus doctor
 nexus tools
-nexus serve --port 3030
 ```
 
-Configuration precedence is documented in `docs/CLI.md`. Example file: `nexus.toml.example`.
+**Sample `report` output shape (markdown):** title `Nexus Report`, generated metadata, then per cluster sections with scores, evidence bullets, and proposed actions (descriptive only in v0).
 
-### Crate layout
+**`plan.json`:** includes `schema_version: 1`; full field list in `docs/PLAN_SCHEMA.md`.
+
+## Commands (v0)
+
+| Command | Role |
+| --- | --- |
+| `scan` | Discover local repos; optional GitHub ingest |
+| `plan` | Resolve clusters, score, write JSON plan |
+| `report` | Markdown or JSON from current inventory |
+| `doctor` | Environment and DB sanity |
+| `apply --dry-run` | Count proposed actions (no mutations) |
+| `tools` | Which optional scanners are on `PATH` |
+| `serve` | **Experimental** read-only JSON API (local use) |
+
+## Crate layout
 
 | Crate | Role |
 | --- | --- |
 | `nexus-core` | Domain types |
 | `nexus-config` | Config loading |
-| `nexus-db` | SQLite persistence |
+| `nexus-db` | SQLite |
 | `nexus-scan` | Filesystem scan |
 | `nexus-git` | Git metadata |
 | `nexus-github` | `gh` ingest |
 | `nexus-plan` | Clustering & scoring |
-| `nexus-report` | Markdown / JSON reports |
-| `nexus-adapters` | Optional jscpd / semgrep / gitleaks / syft CLI hooks |
-| `nexus-api` | Axum JSON API (`serve`) |
+| `nexus-report` | Markdown / JSON |
+| `nexus-adapters` | Optional tool hooks |
+| `nexus-api` | Axum API for `serve` |
 | `nexus-cli` | CLI entrypoint |
 
----
+## Limitations / non-goals (v0)
 
-## Legacy stack (Python + TypeScript)
+- No automatic delete/move/archive of repos; no commits or PRs from the tool.
+- Scoring and clustering are heuristics—always review `plan` and `report` for high-stakes decisions.
+- `serve` is experimental; do not rely on it as a stable public API yet.
 
-The tree still contains the earlier **project-memory** experiment: Python CLI (`nexus.py`), FastAPI dashboard (`server.py`), and a TypeScript CLI under `cli/`. These are **not** the v2 product; they remain for reference and gradual retirement. To tag that era on a commit: `scripts/tag-legacy-python.sh` (see script header).
+## Legacy v1
 
-- Python: `pip install -r requirements.txt`, `python nexus.py --help`
-- TS CLI: `cd cli && npm install && npm run build`
-
----
+Python/TypeScript prototypes are **not** on `main`. They are preserved on branch `legacy/v1-python-ts` and can be tagged with `scripts/tag-legacy-python.sh` (`legacy-py-mvp`). Details: `docs/LEGACY_V1.md`.
 
 ## License
 
-MIT
+MIT — see `LICENSE`.

@@ -1,5 +1,7 @@
 # Architecture
 
+The `main` branch ships **only** the Rust workspace under `crates/`. Older Python/TypeScript prototypes are archived on branch `legacy/v1-python-ts` (see `docs/LEGACY_V1.md`).
+
 ## Core idea
 
 Nexus v2 is a **local-first repository fleet intelligence engine**.

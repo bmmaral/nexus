@@ -9,6 +9,7 @@ fn persist_plan_empty_succeeds() {
     let db_path = dir.path().join("plan.db");
     let mut db = Database::open(&db_path).expect("open");
     let plan = PlanDocument {
+        schema_version: 1,
         generated_at: Utc::now(),
         generated_by: "test".into(),
         clusters: vec![],

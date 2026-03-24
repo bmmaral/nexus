@@ -944,6 +944,7 @@ dependencies = [
  "nexus-report",
  "nexus-scan",
  "serde_json",
+ "tempfile",
  "tokio",
  "tracing",
  "tracing-subscriber",

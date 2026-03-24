@@ -28,6 +28,7 @@ pub fn build_plan(snapshot: &InventorySnapshot) -> Result<PlanDocument> {
 pub fn build_plan_with(snapshot: &InventorySnapshot, opts: PlanBuildOpts) -> Result<PlanDocument> {
     let clusters = resolve_clusters(snapshot, opts.merge_base);
     Ok(PlanDocument {
+        schema_version: 1,
         generated_at: Utc::now(),
         generated_by: format!("nexus {}", env!("CARGO_PKG_VERSION")),
         clusters,

@@ -1,5 +1,7 @@
 # CLI
 
+**v0 command surface (frozen names/flags):** `scan`, `plan`, `report`, `doctor`, `apply --dry-run`, `tools`, `serve` (experimental). New subcommands may appear alongside these without removing them in v0.x.
+
 ## Configuration
 
 Precedence (first match wins):
@@ -37,9 +39,12 @@ nexus plan --write plan.json --external
 ### `nexus report`
 Render markdown or JSON reports from the persisted state.
 
+**Stable markdown sections (in order):** top-level title `Nexus Report`, run metadata bullets, then per cluster: `## {label}`, cluster metadata bullets, `### Scores`, `### Evidence`, `### Actions`. Tools that parse reports should key off these headings.
+
 Example:
 ```bash
 nexus report --format md
+nexus report --format json
 ```
 
 ### `nexus doctor`
@@ -58,8 +63,8 @@ Example:
 nexus apply --dry-run
 ```
 
-### `nexus serve`
-Read-only HTTP JSON API (requires a configured/openable SQLite DB).
+### `nexus serve` (experimental)
+Read-only HTTP JSON API (requires a configured/openable SQLite DB). Intended for local inspection only; treat URLs and JSON shapes as **unstable** until promoted in release notes.
 
 - `GET /health`
 - `GET /v1/plan` — current plan JSON (recomputed from inventory)

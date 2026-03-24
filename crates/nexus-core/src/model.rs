@@ -148,9 +148,16 @@ pub struct ClusterPlan {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlanDocument {
+    /// JSON plan format version. Missing in older files deserializes as `1`.
+    #[serde(default = "plan_schema_version")]
+    pub schema_version: u32,
     pub generated_at: DateTime<Utc>,
     pub generated_by: String,
     pub clusters: Vec<ClusterPlan>,
+}
+
+const fn plan_schema_version() -> u32 {
+    1
 }
 
 /// Association between a scanned local clone and a persisted remote row (git origin, GitHub match, etc.).

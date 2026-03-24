@@ -47,7 +47,7 @@ enum Commands {
         #[arg(long)]
         dry_run: bool,
     },
-    /// Read-only JSON API over loaded SQLite state (`GET /health`, `/v1/plan`, `/v1/inventory`).
+    /// Experimental: read-only JSON API over SQLite (`GET /health`, `/v1/plan`, `/v1/inventory`). Not a stable public surface yet.
     Serve {
         #[arg(long, default_value_t = 3030)]
         port: u16,

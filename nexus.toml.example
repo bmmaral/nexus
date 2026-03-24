@@ -1,3 +1,4 @@
+# Local-only; `.nexus/` is gitignored — do not commit the database.
 db_path = ".nexus/state.db"
 default_roots = ["~/Projects", "~/code"]
 github_owner = "your-github-login"
