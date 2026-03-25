@@ -13,9 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: dtolnay/rust-toolchain@stable
-
       - uses: Swatinem/rust-cache@v2
 
       - name: Install musl toolchain
@@ -28,14 +26,49 @@ jobs:
           CC: x86_64-linux-musl-gcc
         run: cargo build --release --target x86_64-unknown-linux-musl -p nexus-cli
 
-      - name: Stage artifact name
+      - name: Stage artifacts
         run: |
-          cp target/x86_64-unknown-linux-musl/release/nexus \
-            "nexus-${GITHUB_REF_NAME}-x86_64-unknown-linux-musl"
+          BIN=target/x86_64-unknown-linux-musl/release/nexus
+          cp "$BIN" "nexus-${GITHUB_REF_NAME}-x86_64-unknown-linux-musl"
 
-      - name: Upload nexus (linux musl x86_64)
+          # Generate shell completions
+          for sh in bash zsh fish; do
+            "$BIN" completions "$sh" > "nexus.${sh}"
+          done
+          tar czf "nexus-${GITHUB_REF_NAME}-completions.tar.gz" nexus.bash nexus.zsh nexus.fish
+
+      - name: Upload artifacts
         uses: softprops/action-gh-release@v2
         with:
-          files: nexus-${{ github.ref_name }}-x86_64-unknown-linux-musl
+          files: |
+            nexus-${{ github.ref_name }}-x86_64-unknown-linux-musl
+            nexus-${{ github.ref_name }}-completions.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  macos:
+    strategy:
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            runner: macos-latest
+          - target: x86_64-apple-darwin
+            runner: macos-13
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build CLI
+        run: cargo build --release -p nexus-cli
+
+      - name: Stage artifact
+        run: cp target/release/nexus "nexus-${GITHUB_REF_NAME}-${{ matrix.target }}"
+
+      - name: Upload artifact
+        uses: softprops/action-gh-release@v2
+        with:
+          files: nexus-${{ github.ref_name }}-${{ matrix.target }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -375,7 +375,7 @@ impl Database {
                 INSERT OR REPLACE INTO remotes
                 (id, repo_id, provider, owner, name, full_name, url, normalized_url, default_branch,
                  is_fork, is_archived, is_private, pushed_at, created_at, updated_at)
-                VALUES (?1, NULL, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?14)
+                VALUES (?1, NULL, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?13)
                 "#,
                 params![
                     remote.id,

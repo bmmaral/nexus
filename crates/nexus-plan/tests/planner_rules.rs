@@ -4,8 +4,7 @@
 
 use chrono::{Duration, Utc};
 use nexus_core::{
-    ActionType, CloneRecord, CloneRemoteLink, InventorySnapshot, ManifestKind,
-    RemoteRecord,
+    ActionType, CloneRecord, CloneRemoteLink, InventorySnapshot, ManifestKind, RemoteRecord,
 };
 use nexus_plan::{resolve_clusters, PlanBuildOpts, PlanUserIntent};
 use std::collections::HashSet;

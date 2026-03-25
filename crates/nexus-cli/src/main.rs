@@ -2,7 +2,7 @@ mod explain;
 
 use anyhow::{Context, Result};
 use chrono::Utc;
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use nexus_config::ConfigBundle;
 use nexus_core::{CloneRemoteLink, InventorySnapshot, RunRecord};
 use nexus_db::Database;
@@ -14,11 +14,17 @@ use tracing_subscriber::EnvFilter;
 #[derive(Debug, Parser)]
 #[command(name = "nexus")]
 #[command(
-    about = "Local-first repo fleet triage: inventory, clustering, scores, and plans (read-only by default)",
-    version
+    about = "Local-first repo fleet triage — inventory, cluster, score, plan.",
+    long_about = "Nexus inventories your local git clones, ingests GitHub metadata, groups \
+    everything into clusters, scores them, and writes a deterministic plan — \
+    without touching your working trees.\n\n\
+    Golden path: scan → score → plan → report",
+    version,
+    after_help = "Docs: https://github.com/bmmaral/nexus/tree/main/docs"
 )]
 struct Cli {
-    #[arg(long)]
+    /// Path to nexus.toml (default: ./nexus.toml or $NEXUS_CONFIG).
+    #[arg(long, global = true)]
     config: Option<PathBuf>,
 
     #[command(subcommand)]
@@ -27,107 +33,136 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
+    /// Discover local repos and optionally ingest GitHub metadata.
     Scan {
+        /// Directories to scan for git repositories.
         #[arg(value_name = "ROOT")]
         roots: Vec<PathBuf>,
-
+        /// GitHub user or org to ingest (requires `gh` on PATH).
         #[arg(long)]
         github_owner: Option<String>,
     },
-    /// Compute cluster scores and evidence from the current inventory (does not write `plan.json` or persist the plan to SQLite).
+    /// Compute cluster scores and evidence from the current inventory.
     Score {
+        /// Output format.
         #[arg(long, default_value = "text")]
         format: ScoreFormat,
         /// Skip pairwise merge-base evidence between git clones.
         #[arg(long)]
         no_merge_base: bool,
-        /// Run optional scanners (gitleaks, semgrep, jscpd, syft) on canonical clones when installed.
+        /// Run optional external scanners on canonical clones.
         #[arg(long)]
         external: bool,
     },
+    /// Resolve clusters, score, attach actions, and write a JSON plan.
     Plan {
+        /// Where to write the plan JSON file.
         #[arg(long, default_value = "nexus-plan.json")]
         write: PathBuf,
         /// Skip pairwise merge-base evidence between git clones.
         #[arg(long)]
         no_merge_base: bool,
-        /// Run optional scanners (gitleaks, semgrep, jscpd, syft) on canonical clones when installed.
+        /// Run optional external scanners on canonical clones.
         #[arg(long)]
         external: bool,
     },
+    /// Render a human-readable report (Markdown or JSON) from inventory.
     Report {
+        /// Output format.
         #[arg(long, default_value = "md")]
         format: ReportFormat,
     },
+    /// Check environment, config, database, and tool availability.
     Doctor {
+        /// Output format.
         #[arg(long, default_value = "text")]
         format: DoctorFormat,
     },
-    /// Preview how many actions would apply. v1 is read-only: pass `--dry-run` only (mutating apply is not implemented).
+    /// Preview proposed actions without applying them (v1 is read-only).
     Apply {
+        /// Required in v1 — mutating apply is not yet implemented.
         #[arg(long)]
         dry_run: bool,
+        /// Output format.
         #[arg(long, default_value = "text")]
         format: ApplyFormat,
     },
-    /// Experimental: read-only JSON API over SQLite for local inspection. Not a dashboard and not a stable public API yet.
+    /// [experimental] Read-only JSON API over local SQLite.
     Serve {
+        /// Port to listen on.
         #[arg(long, default_value_t = 3030)]
         port: u16,
     },
-    /// Show which optional external tools are on PATH (Phase 10 adapters).
+    /// Show which optional external scanners are on PATH.
     Tools {
+        /// Output format.
         #[arg(long, default_value = "text")]
         format: ToolsFormat,
     },
-    /// Write inventory JSON (optionally with a computed plan) for backup or `nexus import`.
+    /// Export inventory as JSON (optionally with an embedded plan).
     Export {
+        /// Write to file instead of stdout.
         #[arg(short = 'o', long)]
         output: Option<PathBuf>,
-        /// Include a freshly computed plan (same inputs as `plan`, not written to disk or persisted).
+        /// Include a freshly computed plan in the export.
         #[arg(long)]
         with_plan: bool,
+        /// Skip pairwise merge-base evidence.
         #[arg(long)]
         no_merge_base: bool,
+        /// Run optional external scanners.
         #[arg(long)]
         external: bool,
     },
-    /// Replace DB inventory from `nexus export` JSON (clears persisted plan). Requires `--force`.
+    /// Restore inventory from a `nexus export` JSON file.
     Import {
+        /// Path to the export JSON file.
         #[arg(value_name = "FILE")]
         path: PathBuf,
+        /// Confirm replacement (clears existing inventory and persisted plan).
         #[arg(long)]
         force: bool,
     },
-    /// Interactive terminal UI: browse clusters, sort/filter, inspect evidence, pin hints, export plan JSON.
+    /// Interactive terminal UI for browsing clusters, scores, and evidence.
     Tui {
-        /// Skip pairwise merge-base evidence between git clones.
+        /// Skip pairwise merge-base evidence.
         #[arg(long)]
         no_merge_base: bool,
-        /// Run optional scanners on canonical clones when installed.
+        /// Run optional external scanners.
         #[arg(long)]
         external: bool,
     },
-    /// Print scores, evidence, and actions for one cluster (by cluster query or member id).
+    /// Deep-dive into one cluster: scores, evidence, actions.
     Explain {
+        /// Skip pairwise merge-base evidence.
         #[arg(long)]
         no_merge_base: bool,
+        /// Run optional external scanners.
         #[arg(long)]
         external: bool,
+        /// Output format.
         #[arg(long, default_value = "text")]
         format: explain::ExplainFormat,
-        /// Add an AI-generated narrative explanation (requires `ai.enabled = true` in config and API key).
+        /// Append an AI-generated narrative (requires ai.enabled + API key).
         #[arg(long)]
         ai: bool,
         #[command(subcommand)]
         target: explain::ExplainTarget,
     },
-    /// AI-generated executive summary of the full plan (requires `ai.enabled = true`).
+    /// [experimental] AI-generated executive summary of the full plan.
     AiSummary {
+        /// Skip pairwise merge-base evidence.
         #[arg(long)]
         no_merge_base: bool,
+        /// Run optional external scanners.
         #[arg(long)]
         external: bool,
+    },
+    /// Generate shell completions for bash, zsh, fish, elvish, or powershell.
+    Completions {
+        /// Shell to generate completions for.
+        #[arg(value_enum)]
+        shell: clap_complete::Shell,
     },
 }
 
@@ -270,6 +305,10 @@ fn main() -> Result<()> {
             no_merge_base,
             external,
         } => cmd_ai_summary(&db, &bundle, no_merge_base, external),
+        Commands::Completions { shell } => {
+            clap_complete::generate(shell, &mut Cli::command(), "nexus", &mut std::io::stdout());
+            Ok(())
+        }
     }
 }
 

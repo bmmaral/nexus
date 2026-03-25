@@ -126,7 +126,7 @@ This TODO tracks the work needed to harden the CLI, formalize the scoring model,
 - [x] Add `nexus export`
 - [x] Add `nexus import` for saved inventory state / cross-machine comparison
 - [x] Add `nexus ai-summary` for plan-wide AI summaries
-- [ ] Decide whether `nexus suggest` ships in v1.x or later
+- [x] Decide whether `nexus suggest` ships in v1.x or later → **deferred to post-v1**; planning and scoring must be field-tested first
 
 ### TUI
 - [x] Design a minimal TUI over the same engine (`crates/nexus-tui`, `nexus tui`)
@@ -165,7 +165,7 @@ This TODO tracks the work needed to harden the CLI, formalize the scoring model,
 
 ### AI-assisted features
 - [x] Ship AI-assisted explanation after deterministic `explain` exists (`nexus explain --ai`; `nexus ai-summary`)
-- [ ] Evaluate AI-assisted `suggest` only after planning and scoring are stable
+- [x] Evaluate AI-assisted `suggest` only after planning and scoring are stable → **deferred to post-v1**; scoring v5 is stable but needs field data before adding AI suggestions
 - [x] Add clear UX language indicating when output is deterministic vs model-generated (CLI banners: "model-generated, not deterministic")
 
 ---
@@ -199,23 +199,23 @@ This TODO tracks the work needed to harden the CLI, formalize the scoring model,
 ## P7 — Packaging and distribution
 
 ### Distribution strategy
-- [ ] Publish the first tagged release with release notes
-- [ ] Provide install instructions for:
-  - [ ] `cargo`
-  - [ ] prebuilt binaries
-- [ ] Prioritize package channels in this order:
-  - [ ] Homebrew
-  - [ ] Chocolatey
-  - [ ] npm / npx / bunx wrapper
-  - [ ] Scoop
-  - [ ] AUR
-  - [ ] Nix
-- [ ] Keep npm/bun distribution as a thin binary wrapper, not a JS reimplementation
+- [x] Publish the first tagged release with release notes (`release.yml`: Linux musl + macOS arm64/x86_64 binaries + shell completions tarball)
+- [x] Provide install instructions for:
+  - [x] `cargo install` (README § Install)
+  - [x] prebuilt binaries (GitHub Releases via `release.yml`; 3 targets)
+- [x] Prioritize package channels in this order → **deferred post-v1; `cargo install` and GitHub Releases are v1**
+  - [ ] Homebrew — post-v1 (requires formula repo)
+  - [ ] Chocolatey — deferred (Windows not supported in v1)
+  - [ ] npm / npx / bunx wrapper — post-v1
+  - [ ] Scoop — deferred (Windows)
+  - [ ] AUR — post-v1
+  - [ ] Nix — post-v1
+- [x] Keep npm/bun distribution as a thin binary wrapper, not a JS reimplementation (policy recorded; no JS code on main)
 
 ### CLI ergonomics
-- [ ] Add shell completions
-- [ ] Add man page / `--help` polish
-- [ ] Add terminal demos or asciinema-style examples in docs
+- [x] Add shell completions (`nexus completions <bash|zsh|fish|elvish|powershell>` via `clap_complete`)
+- [x] Add man page / `--help` polish (all subcommands have descriptive help text, `--long-about` on root, `--after-help` link)
+- [ ] Add terminal demos or asciinema-style examples in docs — post-v1
 
 ---
 
@@ -235,7 +235,7 @@ This TODO tracks the work needed to harden the CLI, formalize the scoring model,
 ### Internal clarity
 - [x] Keep architecture docs honest about what is experimental (`docs/ARCHITECTURE.md`, `docs/CLI.md`)
 - [x] Keep scoring docs aligned with real implementation (`docs/SCORING.md` ↔ `ScoreBundle` JSON fields)
-- [ ] Keep package/distribution docs aligned with actual support policy
+- [x] Keep package/distribution docs aligned with actual support policy (README install section, `EXTERNAL_TOOLS.md`, `release.yml` match actual binary targets)
 
 ---
 
