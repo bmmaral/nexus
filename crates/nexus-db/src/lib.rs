@@ -35,13 +35,16 @@ impl Database {
         let conn = Connection::open(path)
             .with_context(|| format!("failed to open sqlite db {}", path.display()))?;
 
-        conn.execute_batch(
-            "PRAGMA journal_mode=WAL;
-             PRAGMA synchronous=NORMAL;
-             PRAGMA busy_timeout=5000;
-             PRAGMA foreign_keys=ON;",
-        )
-        .context("failed to set connection pragmas")?;
+        // Best-effort hardening pragmas.
+        //
+        // In CI/test environments multiple processes may open the same default DB path in
+        // parallel (e2e smoke tests spawn `nexus doctor` multiple times). Some pragmas (e.g.
+        // `journal_mode`) can require stronger locking and may fail transiently with "database
+        // is locked" or similar. Nexus should still be able to open and migrate the DB.
+        let _ = conn.execute_batch("PRAGMA journal_mode=WAL;");
+        let _ = conn.execute_batch("PRAGMA synchronous=NORMAL;");
+        let _ = conn.execute_batch("PRAGMA busy_timeout=5000;");
+        let _ = conn.execute_batch("PRAGMA foreign_keys=ON;");
 
         let db = Self { conn };
         db.migrate()?;

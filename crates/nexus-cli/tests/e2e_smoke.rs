@@ -6,6 +6,13 @@ fn nexus_exe() -> PathBuf {
     PathBuf::from(env!("CARGO_BIN_EXE_nexus"))
 }
 
+fn toml_escape_basic(s: &str) -> String {
+    // TOML basic strings use `\` for escape sequences. On Windows, paths include
+    // backslashes (e.g. `C:\Users\...`), which would otherwise be interpreted
+    // as TOML escape sequences like `\UXXXXXXXX`.
+    s.replace('\\', "\\\\").replace('"', "\\\"")
+}
+
 #[test]
 fn doctor_succeeds() {
     let status = Command::new(nexus_exe())
@@ -56,9 +63,10 @@ fn scan_score_plan_report_json_pipeline() {
     let dir = tempfile::tempdir().expect("tempdir");
     let db = dir.path().join("state.db");
     let cfg = dir.path().join("nexus.toml");
+    let escaped_db = toml_escape_basic(&db.to_string_lossy());
     fs::write(
         &cfg,
-        format!("db_path = \"{}\"\ndefault_roots = []\n", db.display()),
+        format!("db_path = \"{}\"\ndefault_roots = []\n", escaped_db),
     )
     .expect("write nexus.toml");
 
