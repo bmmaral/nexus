@@ -1,126 +1,166 @@
-# Nexus
+<p align="center">
+  <strong>nexus</strong><br>
+  <em>Local-first repo fleet triage</em>
+</p>
 
-**Nexus** is a **local-first, Rust CLI for repo fleet triage**: it inventories directories for git repos, ingests GitHub metadata (via `gh`), groups clones and remotes into **clusters**, scores them, and writes a deterministic **plan** — without modifying your working trees.
+<p align="center">
+  <a href="https://github.com/bmmaral/nexus/actions/workflows/rust-ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/bmmaral/nexus/rust-ci.yml?branch=main&style=flat-square&label=CI" alt="CI"></a>
+  <a href="https://github.com/bmmaral/nexus/actions/workflows/security.yml"><img src="https://img.shields.io/github/actions/workflow/status/bmmaral/nexus/security.yml?branch=main&style=flat-square&label=security&color=blueviolet" alt="Security"></a>
+  <a href="https://github.com/bmmaral/nexus/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
+  <img src="https://img.shields.io/badge/rust-1.82%2B-orange?style=flat-square&logo=rust" alt="Rust">
+  <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS-lightgrey?style=flat-square" alt="Platform">
+</p>
 
-**Before:** dozens of checkouts and remotes with unclear "source of truth," risky for humans and agents. **After:** one SQLite-backed inventory, reproducible scores and a `plan.json`, and human-readable reports you can diff and review.
+---
 
-This is **not** a web dashboard or internal developer portal; the product stays lightweight and deterministic.
+**Nexus** inventories your local git clones, ingests GitHub metadata (via `gh`), groups everything into **clusters**, scores them, and writes a deterministic **plan** — without touching your working trees.
 
-**Who it's for:** solo developers, freelancers, small teams, and AI-heavy workflows with lots of local clones — anyone who needs **which repos matter**, **which copy is canonical**, and **what to do next**, without platform overhead.
+**Before:** dozens of checkouts and remotes with unclear "source of truth."
+**After:** one SQLite-backed inventory, reproducible scores, a `plan.json`, and human-readable reports you can diff and review.
 
-**Who it's not for:** enterprises wanting a hosted catalog, approval workflows, or compliance-first tooling — those are different products.
+> **Who it's for:** solo devs, freelancers, small teams, AI-heavy workflows — anyone who needs *which repos matter*, *which copy is canonical*, and *what to do next*.
+>
+> **Not for:** enterprises wanting a hosted catalog, approval workflows, or compliance-first tooling.
 
-## Install / build
+---
 
-- [Rust](https://rustup.rs/) stable (see `rust-toolchain.toml`)
-- **C toolchain** for `rusqlite` (bundled SQLite): macOS Xcode CLT (`xcode-select --install`); Linux `build-essential` or equivalent
+## Quick start
+
+```bash
+cargo build --release -p nexus-cli      # → target/release/nexus
+cp nexus.toml.example nexus.toml        # edit db_path / default_roots / github_owner
+
+nexus scan ~/Projects --github-owner your-login
+nexus score --format text
+nexus plan --write plan.json
+nexus report --format md
+nexus tui                                # interactive terminal browser
+```
+
+## Install
+
+- [Rust](https://rustup.rs/) stable ≥ 1.82
+- **C toolchain** for `rusqlite` (bundled SQLite): macOS Xcode CLT, Linux `build-essential`
 - `git` on `PATH`
-- Optional: `gh` for `scan --github-owner` (see `docs/EXTERNAL_TOOLS.md`)
+- Optional: [`gh`](https://cli.github.com/) for `scan --github-owner`
 
 ```bash
 cargo build --release -p nexus-cli
-# binary: target/release/nexus
 ```
-
-Or debug: `cargo build -p nexus-cli` → `target/debug/nexus`.
-
-Optional: [just](https://github.com/casey/just) recipes (`just test`, `just build`, …).
-
-## Golden path
-
-```bash
-cp nexus.toml.example nexus.toml   # edit db_path / default_roots / github_owner
-nexus scan ~/Projects --github-owner your-login
-nexus score --format text
-nexus plan --write nexus-plan.json
-nexus report --format md
-nexus doctor
-nexus tools
-# optional: nexus export -o backup.json && nexus import backup.json --force
-```
-
-**`plan.json`:** `schema_version: 1`; fields in `docs/PLAN_SCHEMA.md`.
 
 ## Commands
 
 ### Stable core
 
-| Command | Role |
-| --- | --- |
+| Command | What it does |
+| :--- | :--- |
 | `scan` | Discover local repos; optional GitHub ingest |
-| `score` | Compute scores and evidence from inventory (text or JSON; does not persist plan) |
-| `plan` | Resolve clusters, score, attach actions; write JSON plan; persist plan to SQLite |
-| `report` | Markdown or JSON from a fresh plan built from inventory |
-| `doctor` | Environment and DB sanity |
+| `score` | Compute scores + evidence from inventory |
+| `plan` | Resolve clusters → score → actions → write JSON plan |
+| `report` | Markdown or JSON from a fresh plan |
+| `doctor` | Environment and DB sanity checks |
 | `tools` | Which optional scanners are on `PATH` |
 | `export` | JSON inventory (optional embedded plan via `--with-plan`) |
-| `import` | Restore inventory from export JSON; clears persisted plan (`--force` required) |
-| `explain` | One cluster: scores, evidence, actions (`cluster` / `clone` / `remote` subcommands; optional `--ai` narrative) |
+| `import` | Restore inventory from export JSON (`--force` required) |
+| `explain` | Per-cluster deep dive: scores, evidence, actions (`--ai` for narrative) |
 
-### Secondary (real, shipped)
+### Secondary
 
-| Command | Role |
-| --- | --- |
-| `tui` | Interactive terminal table: sort/filter clusters, evidence inspection, pin hint, plan export; read-only |
+| Command | What it does |
+| :--- | :--- |
+| `tui` | Interactive terminal table — sort, filter, inspect, pin, export |
 
 ### Experimental
 
-| Command | Role |
-| --- | --- |
-| `ai-summary` | AI-generated executive summary of the full plan (requires `ai.enabled = true` + API key) |
-| `apply --dry-run` | Count proposed actions (read-only preview; mutating apply disabled) |
-| `serve` | Read-only JSON API over local SQLite (not a dashboard; unstable API) |
+| Command | What it does |
+| :--- | :--- |
+| `ai-summary` | AI-generated executive summary of the full plan |
+| `apply --dry-run` | Count proposed actions (read-only preview) |
+| `serve` | Read-only JSON API over local SQLite |
 
-See `docs/CLI.md` for flags, examples, and TUI keybindings.
+See [`docs/CLI.md`](docs/CLI.md) for flags, examples, and TUI keybindings.
 
-## Crate layout
+---
+
+## Architecture
+
+```
+          ┌──────────────────────────────────────────────┐
+          │                  nexus-cli                    │
+          │         clap commands · tokio runtime         │
+          └──┬────┬────┬────┬────┬────┬────┬────┬────┬───┘
+             │    │    │    │    │    │    │    │    │
+         scan│ git│ gh │plan│ db │ rpt│ tui│ ai │ api│
+             ▼    ▼    ▼    ▼    ▼    ▼    ▼    ▼    ▼
+         ┌──────────────────────────────────────────────┐
+         │               nexus-core                     │
+         │    CloneRecord · ClusterRecord · PlanDoc     │
+         └──────────────────────────────────────────────┘
+                             │
+                     ┌───────┴───────┐
+                     │  SQLite (db)  │
+                     └───────────────┘
+```
+
+13 crates, one workspace:
 
 | Crate | Role |
-| --- | --- |
-| `nexus-core` | Domain types |
-| `nexus-config` | Config loading |
-| `nexus-db` | SQLite |
-| `nexus-scan` | Filesystem scan |
-| `nexus-git` | Git metadata |
-| `nexus-github` | `gh` ingest |
-| `nexus-plan` | Clustering & scoring |
-| `nexus-report` | Markdown / JSON |
-| `nexus-adapters` | Optional tool hooks |
-| `nexus-tui` | Ratatui terminal browser |
+| :--- | :--- |
+| `nexus-core` | Domain types (`CloneRecord`, `ClusterRecord`, `PlanDocument`, etc.) |
+| `nexus-config` | Config loading (`nexus.toml`) |
+| `nexus-db` | SQLite persistence |
+| `nexus-scan` | Filesystem + directory walking |
+| `nexus-git` | Git metadata extraction |
+| `nexus-github` | `gh` CLI ingest |
+| `nexus-plan` | Clustering, scoring engine, action generation |
+| `nexus-report` | Markdown / JSON report rendering |
+| `nexus-adapters` | Optional external tool hooks (gitleaks, semgrep, syft, jscpd) |
+| `nexus-tui` | Ratatui interactive terminal browser |
 | `nexus-ai` | Optional AI explanations (OpenAI-compatible) |
 | `nexus-api` | Axum API for `serve` (experimental) |
 | `nexus-cli` | CLI entrypoint |
 
-## Limitations / non-goals (v1)
+## External tools (optional)
 
-- No web dashboard; no automatic delete/move/archive of repos; no commits or PRs from the tool.
+| Tool | Support | What it adds |
+| :--- | :--- | :--- |
+| `gitleaks` | **Official** | Secret leak detection evidence |
+| `semgrep` | **Official** | Static analysis findings |
+| `syft` | **Official** | SBOM / dependency inventory |
+| `jscpd` | Best effort | Copy/paste duplication evidence |
+
+Missing tools are **silently skipped** — they never break the pipeline. See [`docs/EXTERNAL_TOOLS.md`](docs/EXTERNAL_TOOLS.md).
+
+---
+
+## Limitations (v1)
+
+- No web dashboard; no automatic delete/move/archive of repos.
 - Scoring and clustering are heuristics — review `plan` and `report` for high-stakes decisions.
-- `serve` is experimental; do not rely on it as a stable public API yet.
+- `serve` is experimental; do not rely on it as a stable API.
 - Core usefulness does **not** depend on AI.
 
 ## Docs
 
 | Doc | Purpose |
-| --- | --- |
-| [`docs/CLI.md`](docs/CLI.md) | Full command reference, flags, TUI keybindings |
-| [`docs/SCORING.md`](docs/SCORING.md) | Scoring model, evidence kinds, failure modes |
-| [`docs/SCORING_PROFILES.md`](docs/SCORING_PROFILES.md) | Optional scoring profiles |
-| [`docs/PLAN_SCHEMA.md`](docs/PLAN_SCHEMA.md) | Plan JSON schema |
-| [`docs/CONFIG.md`](docs/CONFIG.md) | `nexus.toml` configuration |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Crate layout and data flow |
-| [`docs/PRODUCT_STRATEGY.md`](docs/PRODUCT_STRATEGY.md) | Positioning and roadmap |
-| [`docs/EXTERNAL_TOOLS.md`](docs/EXTERNAL_TOOLS.md) | Optional scanner adapters |
-| [`docs/EXAMPLES.md`](docs/EXAMPLES.md) | Copy-paste scenarios |
-| [`docs/FAQ.md`](docs/FAQ.md) | Common questions |
-| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Architecture decision records |
-| [`docs/LEGACY_V1.md`](docs/LEGACY_V1.md) | Python/TS prototype migration notes |
-
-Backlog: [`TODO_updated.md`](TODO_updated.md).
+| :--- | :--- |
+| [`CLI.md`](docs/CLI.md) | Full command reference, flags, TUI keybindings |
+| [`SCORING.md`](docs/SCORING.md) | Scoring model, evidence kinds, failure modes |
+| [`SCORING_PROFILES.md`](docs/SCORING_PROFILES.md) | Optional scoring profiles |
+| [`PLAN_SCHEMA.md`](docs/PLAN_SCHEMA.md) | Plan JSON schema |
+| [`CONFIG.md`](docs/CONFIG.md) | `nexus.toml` configuration |
+| [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Crate layout and data flow |
+| [`PRODUCT_STRATEGY.md`](docs/PRODUCT_STRATEGY.md) | Positioning and roadmap |
+| [`EXTERNAL_TOOLS.md`](docs/EXTERNAL_TOOLS.md) | Optional scanner adapters |
+| [`EXAMPLES.md`](docs/EXAMPLES.md) | Copy-paste scenarios |
+| [`FAQ.md`](docs/FAQ.md) | Common questions |
+| [`DECISIONS.md`](docs/DECISIONS.md) | Architecture decision records |
+| [`LEGACY_V1.md`](docs/LEGACY_V1.md) | Python/TS prototype migration notes |
 
 ## Legacy v1
 
-Python/TypeScript prototypes are **not** on `main`. They are preserved on branch `legacy/v1-python-ts` and tag `legacy-py-mvp`. Details: `docs/LEGACY_V1.md`.
+Python/TypeScript prototypes are **not** on `main`. Preserved on branch `legacy/v1-python-ts` and tag `legacy-py-mvp`. Details: [`docs/LEGACY_V1.md`](docs/LEGACY_V1.md).
 
 ## License
 
-MIT — see `LICENSE`.
+MIT — see [`LICENSE`](LICENSE).

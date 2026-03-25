@@ -144,14 +144,14 @@ This TODO tracks the work needed to harden the CLI, formalize the scoring model,
 
 ### External tools
 - [x] Add timeouts and graceful degradation for external tools
-- [ ] Cache adapter outputs per run
-- [ ] Normalize adapter evidence into a shared schema
-- [ ] Decide which adapters are officially supported vs best effort
+- [x] Cache adapter outputs per run (`AdapterCache` keyed by tool+directory; reused across clusters)
+- [x] Normalize adapter evidence into a shared schema (consistent `EvidenceItem` with `<tool>_<scan_type>` kind, zero delta, first-line summary)
+- [x] Decide which adapters are officially supported vs best effort (gitleaks/semgrep/syft: Official; jscpd: Best effort; documented in `EXTERNAL_TOOLS.md`)
 
 ### Profile integration
-- [ ] Wire adapters cleanly into optional profiles, not the default happy path
-- [ ] Ensure missing adapters never break `scan`, `score`, `plan`, or `report`
-- [ ] Document adapter installation and cost/benefit clearly
+- [x] Wire adapters cleanly into optional profiles, not the default happy path (`attach_filtered_evidence` with `AdapterCategory` filtering)
+- [x] Ensure missing adapters never break `scan`, `score`, `plan`, or `report` (silently skipped; tested in `adapter_absence.rs`)
+- [x] Document adapter installation and cost/benefit clearly (support tiers, cost/benefit table, caching, timeouts in `EXTERNAL_TOOLS.md`)
 
 ---
 
@@ -182,17 +182,17 @@ This TODO tracks the work needed to harden the CLI, formalize the scoring model,
   - [x] override/pinning behavior (`pin_overrides_canonical_even_for_stale_clone`, `ignored_key_clears_actions_keeps_scores`, `archive_hint_adds_evidence_keeps_actions`)
 - [x] Add snapshot tests for JSON plan/report stability (`plan_document_serializes_with_expected_fields`)
 - [x] Add regression tests for scoring explanations and evidence rendering (markdown snapshot; `not_canonical_clone` planner test)
-- [ ] Add tests for adapter absence/failure cases across all optional profiles
+- [x] Add tests for adapter absence/failure cases across all optional profiles (`adapter_absence.rs`: 7 tests covering missing tools, nonexistent dirs, no canonical, cache dedup, category filtering, empty plans)
 
 ### CI/CD
-- [ ] Keep CI focused on the Rust product and supported packaging paths
-- [ ] Verify:
-  - [ ] `cargo fmt --check`
-  - [ ] `cargo clippy -- -D warnings`
-  - [ ] `cargo test --workspace`
-  - [ ] docs/examples compile where applicable
-- [ ] Decide on Windows and macOS release support in addition to Linux
-- [ ] Add package-manager validation where practical for release workflows
+- [x] Keep CI focused on the Rust product and supported packaging paths (`rust-ci.yml`: fmt, clippy, test, cargo-deny; no legacy workflows)
+- [x] Verify:
+  - [x] `cargo fmt --check`
+  - [x] `cargo clippy -- -D warnings`
+  - [x] `cargo test --workspace`
+  - [x] docs/examples compile where applicable (workspace-level `cargo check` covers all)
+- [x] Decide on Windows and macOS release support in addition to Linux (macOS: CI job added; Windows: deferred — no maintainer; Linux musl: cross-compile CI job added)
+- [x] Add package-manager validation where practical for release workflows (`linux-musl` CI job cross-compiles static release binary)
 
 ---
 

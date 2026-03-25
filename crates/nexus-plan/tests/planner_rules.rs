@@ -4,7 +4,7 @@
 
 use chrono::{Duration, Utc};
 use nexus_core::{
-    ActionType, CloneRecord, CloneRemoteLink, ClusterStatus, InventorySnapshot, ManifestKind,
+    ActionType, CloneRecord, CloneRemoteLink, InventorySnapshot, ManifestKind,
     RemoteRecord,
 };
 use nexus_plan::{resolve_clusters, PlanBuildOpts, PlanUserIntent};

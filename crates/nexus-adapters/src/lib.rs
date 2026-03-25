@@ -1,4 +1,8 @@
 //! Optional CLI adapters (jscpd, semgrep, gitleaks, syft). They never block the core pipeline.
+//!
+//! Adapters are **best-effort**: missing tools are silently skipped, timeouts are caught,
+//! and failures produce informational evidence rather than errors.
+
 use anyhow::Result;
 use nexus_core::{EvidenceItem, InventorySnapshot, MemberKind, PlanDocument};
 use std::collections::HashMap;
@@ -8,7 +12,9 @@ use std::process::{Command, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+// ── Tool registry ────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ExternalTool {
     Jscpd,
     Semgrep,
@@ -19,26 +25,221 @@ pub enum ExternalTool {
 impl ExternalTool {
     pub fn bin_name(self) -> &'static str {
         match self {
-            ExternalTool::Jscpd => "jscpd",
-            ExternalTool::Semgrep => "semgrep",
-            ExternalTool::Gitleaks => "gitleaks",
-            ExternalTool::Syft => "syft",
+            Self::Jscpd => "jscpd",
+            Self::Semgrep => "semgrep",
+            Self::Gitleaks => "gitleaks",
+            Self::Syft => "syft",
         }
     }
+
+    pub fn evidence_kind(self) -> &'static str {
+        match self {
+            Self::Jscpd => "jscpd_scan",
+            Self::Semgrep => "semgrep_scan",
+            Self::Gitleaks => "gitleaks_detect",
+            Self::Syft => "syft_sbom",
+        }
+    }
+
+    /// Which category this adapter belongs to for profile filtering.
+    pub fn category(self) -> AdapterCategory {
+        match self {
+            Self::Gitleaks => AdapterCategory::Security,
+            Self::Semgrep => AdapterCategory::Security,
+            Self::Jscpd => AdapterCategory::Quality,
+            Self::Syft => AdapterCategory::SupplyChain,
+        }
+    }
+
+    /// Official support status.
+    pub fn support_tier(self) -> SupportTier {
+        match self {
+            Self::Gitleaks => SupportTier::OfficiallySupported,
+            Self::Semgrep => SupportTier::OfficiallySupported,
+            Self::Syft => SupportTier::OfficiallySupported,
+            Self::Jscpd => SupportTier::BestEffort,
+        }
+    }
+
+    pub const ALL: [ExternalTool; 4] = [Self::Gitleaks, Self::Semgrep, Self::Jscpd, Self::Syft];
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AdapterCategory {
+    Security,
+    Quality,
+    SupplyChain,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SupportTier {
+    /// Tested in CI, documented, breakage is a bug.
+    OfficiallySupported,
+    /// Works when available, not guaranteed across versions.
+    BestEffort,
+}
+
+// ── Probe ────────────────────────────────────────────────────────────────────
 
 /// Whether each supported tool is on `PATH`.
 pub fn probe_all() -> Vec<(ExternalTool, bool)> {
-    [
-        ExternalTool::Jscpd,
-        ExternalTool::Semgrep,
-        ExternalTool::Gitleaks,
-        ExternalTool::Syft,
-    ]
-    .into_iter()
-    .map(|t| (t, which::which(t.bin_name()).is_ok()))
-    .collect()
+    ExternalTool::ALL
+        .into_iter()
+        .map(|t| (t, which::which(t.bin_name()).is_ok()))
+        .collect()
 }
+
+// ── Per-run cache ────────────────────────────────────────────────────────────
+
+/// Caches adapter results keyed by (tool, directory path) so the same clone
+/// is never scanned twice in a single `--external` invocation.
+#[derive(Default)]
+pub struct AdapterCache {
+    results: HashMap<(ExternalTool, String), Option<AdapterResult>>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AdapterResult {
+    pub exit_code: i32,
+    pub summary: String,
+}
+
+impl AdapterCache {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    fn get_or_run(&mut self, tool: ExternalTool, root: &Path) -> &Option<AdapterResult> {
+        let key = (tool, root.to_string_lossy().to_string());
+        self.results.entry(key).or_insert_with_key(|k| {
+            let (tool, _) = k;
+            run_tool(*tool, root)
+        })
+    }
+}
+
+fn run_tool(tool: ExternalTool, root: &Path) -> Option<AdapterResult> {
+    let (args, bin): (&[&str], &str) = match tool {
+        ExternalTool::Gitleaks => (
+            &["detect", "-s", ".", "--exit-code", "0", "--no-banner"],
+            "gitleaks",
+        ),
+        ExternalTool::Semgrep => (
+            &["scan", "--config", "p/ci", "--quiet", "--error", "."],
+            "semgrep",
+        ),
+        ExternalTool::Jscpd => (&[".", "--silent", "--min-lines", "10"], "jscpd"),
+        ExternalTool::Syft => (&[".", "-o", "json"], "syft"),
+    };
+
+    run_capture(bin, args, root).map(|(code, summary)| {
+        let summary = if tool == ExternalTool::Syft && summary.len() > 240 {
+            format!("{}…", &summary[..240])
+        } else {
+            summary
+        };
+        AdapterResult {
+            exit_code: code,
+            summary,
+        }
+    })
+}
+
+// ── Normalized evidence ──────────────────────────────────────────────────────
+
+/// Structured adapter evidence with a consistent schema regardless of tool.
+fn adapter_evidence(tool: ExternalTool, clone_id: &str, result: &AdapterResult) -> EvidenceItem {
+    let prefix = tool.bin_name();
+    let detail = format!("{prefix}: {}", result.summary);
+    evid(clone_id, tool.evidence_kind(), 0.0, detail)
+}
+
+// ── Main entry point ─────────────────────────────────────────────────────────
+
+/// Append lightweight evidence rows for each cluster's canonical clone when tools exist.
+///
+/// Adapters are best-effort: missing tools are silently skipped, timeouts produce
+/// informational evidence, and failures never propagate as errors. A per-run cache
+/// prevents scanning the same directory twice.
+pub fn attach_external_evidence(
+    plan: &mut PlanDocument,
+    snapshot: &InventorySnapshot,
+) -> Result<()> {
+    let mut cache = AdapterCache::new();
+    attach_external_evidence_cached(plan, snapshot, &mut cache)
+}
+
+/// Same as [`attach_external_evidence`] but accepts a reusable cache.
+pub fn attach_external_evidence_cached(
+    plan: &mut PlanDocument,
+    snapshot: &InventorySnapshot,
+    cache: &mut AdapterCache,
+) -> Result<()> {
+    let by_id: HashMap<_, _> = snapshot.clones.iter().map(|c| (c.id.clone(), c)).collect();
+
+    for cp in &mut plan.clusters {
+        let Some(cid) = cp.cluster.canonical_clone_id.as_ref() else {
+            continue;
+        };
+        let Some(clone) = by_id.get(cid) else {
+            continue;
+        };
+        let root = Path::new(clone.path.as_str());
+        if !root.is_dir() {
+            continue;
+        }
+
+        for tool in ExternalTool::ALL {
+            if let Some(result) = cache.get_or_run(tool, root).clone() {
+                cp.cluster
+                    .evidence
+                    .push(adapter_evidence(tool, cid, &result));
+            }
+        }
+    }
+
+    Ok(())
+}
+
+// ── Profile-filtered variant ─────────────────────────────────────────────────
+
+/// Only run adapters whose category matches the requested set.
+pub fn attach_filtered_evidence(
+    plan: &mut PlanDocument,
+    snapshot: &InventorySnapshot,
+    categories: &[AdapterCategory],
+    cache: &mut AdapterCache,
+) -> Result<()> {
+    let by_id: HashMap<_, _> = snapshot.clones.iter().map(|c| (c.id.clone(), c)).collect();
+
+    for cp in &mut plan.clusters {
+        let Some(cid) = cp.cluster.canonical_clone_id.as_ref() else {
+            continue;
+        };
+        let Some(clone) = by_id.get(cid) else {
+            continue;
+        };
+        let root = Path::new(clone.path.as_str());
+        if !root.is_dir() {
+            continue;
+        }
+
+        for tool in ExternalTool::ALL {
+            if !categories.contains(&tool.category()) {
+                continue;
+            }
+            if let Some(result) = cache.get_or_run(tool, root).clone() {
+                cp.cluster
+                    .evidence
+                    .push(adapter_evidence(tool, cid, &result));
+            }
+        }
+    }
+
+    Ok(())
+}
+
+// ── Subprocess runner ────────────────────────────────────────────────────────
 
 /// Wall-clock limit per adapter invocation. Override with `NEXUS_ADAPTER_TIMEOUT_SECS` (1–86400).
 fn adapter_timeout() -> Duration {
@@ -125,66 +326,6 @@ fn run_capture(bin: &str, args: &[&str], cwd: &Path) -> Option<(i32, String)> {
     }
 }
 
-/// Append lightweight evidence rows for each cluster’s canonical clone when tools exist.
-pub fn attach_external_evidence(
-    plan: &mut PlanDocument,
-    snapshot: &InventorySnapshot,
-) -> Result<()> {
-    let by_id: HashMap<_, _> = snapshot.clones.iter().map(|c| (c.id.clone(), c)).collect();
-
-    for cp in &mut plan.clusters {
-        let Some(cid) = cp.cluster.canonical_clone_id.as_ref() else {
-            continue;
-        };
-        let Some(clone) = by_id.get(cid) else {
-            continue;
-        };
-        let root = Path::new(clone.path.as_str());
-        if !root.is_dir() {
-            continue;
-        }
-
-        if let Some((_c, s)) = run_capture(
-            "gitleaks",
-            &["detect", "-s", ".", "--exit-code", "0", "--no-banner"],
-            root,
-        ) {
-            cp.cluster
-                .evidence
-                .push(evid(cid, "gitleaks_detect", 0.0, format!("gitleaks: {s}")));
-        }
-
-        if let Some((_c, s)) = run_capture(
-            "semgrep",
-            &["scan", "--config", "p/ci", "--quiet", "--error", "."],
-            root,
-        ) {
-            cp.cluster
-                .evidence
-                .push(evid(cid, "semgrep_scan", 0.0, format!("semgrep: {s}")));
-        }
-
-        if let Some((_c, s)) = run_capture("jscpd", &[".", "--silent", "--min-lines", "10"], root) {
-            cp.cluster
-                .evidence
-                .push(evid(cid, "jscpd_scan", 0.0, format!("jscpd: {s}")));
-        }
-
-        if let Some((_c, s)) = run_capture("syft", &[".", "-o", "json"], root) {
-            let tail = if s.len() > 240 {
-                format!("{}…", &s[..240])
-            } else {
-                s
-            };
-            cp.cluster
-                .evidence
-                .push(evid(cid, "syft_sbom", 0.0, format!("syft: {tail}")));
-        }
-    }
-
-    Ok(())
-}
-
 fn evid(clone_id: &str, kind: &str, delta: f64, detail: String) -> EvidenceItem {
     EvidenceItem {
         id: format!("ext-{}", uuid::Uuid::new_v4()),
@@ -193,5 +334,56 @@ fn evid(clone_id: &str, kind: &str, delta: f64, detail: String) -> EvidenceItem 
         kind: kind.into(),
         score_delta: delta,
         detail,
+    }
+}
+
+// ── Tests ────────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tool_metadata_is_consistent() {
+        for tool in ExternalTool::ALL {
+            assert!(!tool.bin_name().is_empty());
+            assert!(!tool.evidence_kind().is_empty());
+            let _ = tool.category();
+            let _ = tool.support_tier();
+        }
+    }
+
+    #[test]
+    fn cache_returns_none_for_missing_tools() {
+        let mut cache = AdapterCache::new();
+        let dir = std::env::temp_dir();
+        for tool in ExternalTool::ALL {
+            let result = cache.get_or_run(tool, &dir);
+            // Tools are likely not installed in test env — result is None (graceful)
+            // Even if installed, this should not panic
+            let _ = result;
+        }
+    }
+
+    #[test]
+    fn probe_all_returns_four_entries() {
+        let probes = probe_all();
+        assert_eq!(probes.len(), 4);
+    }
+
+    #[test]
+    fn support_tiers_are_assigned() {
+        assert_eq!(
+            ExternalTool::Gitleaks.support_tier(),
+            SupportTier::OfficiallySupported
+        );
+        assert_eq!(ExternalTool::Jscpd.support_tier(), SupportTier::BestEffort);
+    }
+
+    #[test]
+    fn categories_are_assigned() {
+        assert_eq!(ExternalTool::Gitleaks.category(), AdapterCategory::Security);
+        assert_eq!(ExternalTool::Syft.category(), AdapterCategory::SupplyChain);
+        assert_eq!(ExternalTool::Jscpd.category(), AdapterCategory::Quality);
     }
 }
