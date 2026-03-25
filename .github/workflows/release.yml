@@ -30,8 +30,8 @@ jobs:
         run: |
           BIN=target/x86_64-unknown-linux-musl/release/nexus
           cp "$BIN" "nexus-${GITHUB_REF_NAME}-x86_64-unknown-linux-musl"
+          sha256sum "nexus-${GITHUB_REF_NAME}-x86_64-unknown-linux-musl" | awk '{print $1}' > "nexus-${GITHUB_REF_NAME}-x86_64-unknown-linux-musl.sha256"
 
-          # Generate shell completions
           for sh in bash zsh fish; do
             "$BIN" completions "$sh" > "nexus.${sh}"
           done
@@ -42,6 +42,7 @@ jobs:
         with:
           files: |
             nexus-${{ github.ref_name }}-x86_64-unknown-linux-musl
+            nexus-${{ github.ref_name }}-x86_64-unknown-linux-musl.sha256
             nexus-${{ github.ref_name }}-completions.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -64,11 +65,40 @@ jobs:
         run: cargo build --release -p nexus-cli
 
       - name: Stage artifact
-        run: cp target/release/nexus "nexus-${GITHUB_REF_NAME}-${{ matrix.target }}"
+        run: |
+          cp target/release/nexus "nexus-${GITHUB_REF_NAME}-${{ matrix.target }}"
+          shasum -a 256 "nexus-${GITHUB_REF_NAME}-${{ matrix.target }}" | awk '{print $1}' > "nexus-${GITHUB_REF_NAME}-${{ matrix.target }}.sha256"
 
       - name: Upload artifact
         uses: softprops/action-gh-release@v2
         with:
-          files: nexus-${{ github.ref_name }}-${{ matrix.target }}
+          files: |
+            nexus-${{ github.ref_name }}-${{ matrix.target }}
+            nexus-${{ github.ref_name }}-${{ matrix.target }}.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build CLI
+        run: cargo build --release -p nexus-cli
+
+      - name: Stage artifact
+        shell: bash
+        run: |
+          cp target/release/nexus.exe "nexus-${GITHUB_REF_NAME}-x86_64-pc-windows-msvc.exe"
+          sha256sum "nexus-${GITHUB_REF_NAME}-x86_64-pc-windows-msvc.exe" | awk '{print $1}' > "nexus-${GITHUB_REF_NAME}-x86_64-pc-windows-msvc.exe.sha256"
+
+      - name: Upload artifact
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            nexus-${{ github.ref_name }}-x86_64-pc-windows-msvc.exe
+            nexus-${{ github.ref_name }}-x86_64-pc-windows-msvc.exe.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

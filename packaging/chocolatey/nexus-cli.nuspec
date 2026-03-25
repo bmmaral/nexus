@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>nexus-cli</id>
+    <version>0.1.0</version>
+    <title>Nexus CLI</title>
+    <authors>Nexus contributors</authors>
+    <projectUrl>https://github.com/bmmaral/nexus</projectUrl>
+    <licenseUrl>https://github.com/bmmaral/nexus/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/bmmaral/nexus</projectSourceUrl>
+    <docsUrl>https://github.com/bmmaral/nexus/tree/main/docs</docsUrl>
+    <bugTrackerUrl>https://github.com/bmmaral/nexus/issues</bugTrackerUrl>
+    <tags>nexus git cli fleet triage</tags>
+    <summary>Local-first repo fleet triage CLI</summary>
+    <description>
+      Nexus inventories local git clones, clusters them, scores, and writes a plan — read-only by default.
+      This package installs the prebuilt Windows binary from GitHub Releases.
+    </description>
+    <releaseNotes>https://github.com/bmmaral/nexus/releases</releaseNotes>
+  </metadata>
+  <files>
+    <file src="tools/**" target="tools" />
+  </files>
+</package>

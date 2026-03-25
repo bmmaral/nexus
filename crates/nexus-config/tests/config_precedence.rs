@@ -123,7 +123,10 @@ default_roots = []
     let _cwd = CwdGuard::chdir(dir.path()).expect("chdir");
     let bundle = ConfigBundle::load(None).expect("load cwd file");
     assert_eq!(bundle.config.db_path, PathBuf::from("/cwd/db.sqlite"));
-    let loaded = bundle.source_path.as_ref().expect("source path should be set");
+    let loaded = bundle
+        .source_path
+        .as_ref()
+        .expect("source path should be set");
     assert_eq!(
         canonical_or_identity(loaded),
         canonical_or_identity(&local),

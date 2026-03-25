@@ -203,14 +203,14 @@ This TODO tracks the work needed to harden the CLI, formalize the scoring model,
 - [x] Provide install instructions for:
   - [x] `cargo install` (README § Install)
   - [x] prebuilt binaries (GitHub Releases via `release.yml`; 3 targets)
-- [x] Prioritize package channels in this order → **deferred post-v1; `cargo install` and GitHub Releases are v1**
-  - [ ] Homebrew — post-v1 (requires formula repo)
-  - [ ] Chocolatey — deferred (Windows not supported in v1)
-  - [ ] npm / npx / bunx wrapper — post-v1
-  - [ ] Scoop — deferred (Windows)
-  - [ ] AUR — post-v1
-  - [ ] Nix — post-v1
-- [x] Keep npm/bun distribution as a thin binary wrapper, not a JS reimplementation (policy recorded; no JS code on main)
+- [x] Prioritize package channels (templates + docs in `docs/DISTRIBUTION.md`, `packaging/RELEASING.md`)
+  - [x] Homebrew — `packaging/homebrew/nexus.rb` (source build; bump tarball sha per tag)
+  - [x] Chocolatey — `packaging/chocolatey/` (prebuilt `.exe`; set `checksum64` from release `.sha256`)
+  - [x] npm / npx / bunx — `packaging/npm/` thin binary wrapper (sync version with GitHub tag)
+  - [x] Scoop — `packaging/scoop/nexus.json` (set hash or use `checkver`/`autoupdate` + `.sha256` sidecar)
+  - [x] AUR — `packaging/aur/PKGBUILD` (upstream reference for maintainers)
+  - [x] Nix — `flake.nix` at repo root (`nix run .#nexus`; run `nix flake lock` when needed)
+- [x] Keep npm/bun distribution as a thin binary wrapper, not a JS reimplementation (`packaging/npm/` only; downloads release binaries)
 
 ### CLI ergonomics
 - [x] Add shell completions (`nexus completions <bash|zsh|fish|elvish|powershell>` via `clap_complete`)

@@ -1,0 +1,28 @@
+{
+  "version": "0.1.0",
+  "description": "Local-first repo fleet triage CLI (inventory, cluster, score, plan).",
+  "homepage": "https://github.com/bmmaral/nexus",
+  "license": "MIT",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/bmmaral/nexus/releases/download/v0.1.0/nexus-v0.1.0-x86_64-pc-windows-msvc.exe",
+      "hash": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  },
+  "pre_install": "Get-ChildItem \"$dir\\nexus-v*.exe\" | Select-Object -First 1 | ForEach-Object { Rename-Item $_.FullName 'nexus.exe' }",
+  "bin": "nexus.exe",
+  "checkver": {
+    "github": "https://github.com/bmmaral/nexus"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/bmmaral/nexus/releases/download/v$version/nexus-v$version-x86_64-pc-windows-msvc.exe",
+        "hash": {
+          "url": "$url.sha256",
+          "regex": "^([a-fA-F0-9]{64})"
+        }
+      }
+    }
+  }
+}

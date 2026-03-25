@@ -1,0 +1,29 @@
+{
+  "name": "nexus-cli",
+  "version": "0.1.0",
+  "description": "Thin npm installer for the Nexus binary (https://github.com/bmmaral/nexus). Not a JS port.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bmmaral/nexus.git",
+    "directory": "packaging/npm"
+  },
+  "homepage": "https://github.com/bmmaral/nexus",
+  "bugs": "https://github.com/bmmaral/nexus/issues",
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "nexus": "bin/nexus.js"
+  },
+  "files": [
+    "bin/nexus.js",
+    "README.md"
+  ],
+  "keywords": [
+    "nexus",
+    "git",
+    "cli",
+    "repos"
+  ]
+}

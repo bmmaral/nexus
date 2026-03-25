@@ -8,7 +8,7 @@
   <a href="https://github.com/bmmaral/nexus/actions/workflows/security.yml"><img src="https://img.shields.io/github/actions/workflow/status/bmmaral/nexus/security.yml?branch=main&style=flat-square&label=security&color=blueviolet" alt="Security"></a>
   <a href="https://github.com/bmmaral/nexus/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
   <img src="https://img.shields.io/badge/rust-1.82%2B-orange?style=flat-square&logo=rust" alt="Rust">
-  <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS-lightgrey?style=flat-square" alt="Platform">
+  <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20win-lightgrey?style=flat-square" alt="Platform">
 </p>
 
 ---
@@ -39,14 +39,20 @@ nexus tui                                # interactive terminal browser
 
 ## Install
 
-- [Rust](https://rustup.rs/) stable ≥ 1.82
-- **C toolchain** for `rusqlite` (bundled SQLite): macOS Xcode CLT, Linux `build-essential`
-- `git` on `PATH`
-- Optional: [`gh`](https://cli.github.com/) for `scan --github-owner`
+**Prebuilt binaries:** [GitHub Releases](https://github.com/bmmaral/nexus/releases) (Linux musl x86_64, macOS arm64/x86_64, Windows x86_64) with `.sha256` checksum files.
+
+**From source** (needs [Rust](https://rustup.rs/) stable ≥ 1.82 and a **C toolchain** for `rusqlite`: macOS Xcode CLT, Linux `build-essential`, Windows MSVC build tools):
 
 ```bash
+cargo install --locked --path crates/nexus-cli
+# or
 cargo build --release -p nexus-cli
 ```
+
+**Package managers & wrappers:** Homebrew formula, Scoop, Chocolatey, npm thin wrapper, AUR PKGBUILD, and Nix are documented in [`docs/DISTRIBUTION.md`](docs/DISTRIBUTION.md).
+
+- `git` on `PATH`
+- Optional: [`gh`](https://cli.github.com/) for `scan --github-owner`
 
 ## Commands
 
@@ -152,6 +158,7 @@ Missing tools are **silently skipped** — they never break the pipeline. See [`
 | [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Crate layout and data flow |
 | [`PRODUCT_STRATEGY.md`](docs/PRODUCT_STRATEGY.md) | Positioning and roadmap |
 | [`EXTERNAL_TOOLS.md`](docs/EXTERNAL_TOOLS.md) | Optional scanner adapters |
+| [`DISTRIBUTION.md`](docs/DISTRIBUTION.md) | Homebrew, Scoop, Chocolatey, npm, AUR, Nix |
 | [`EXAMPLES.md`](docs/EXAMPLES.md) | Copy-paste scenarios |
 | [`FAQ.md`](docs/FAQ.md) | Common questions |
 | [`DECISIONS.md`](docs/DECISIONS.md) | Architecture decision records |
