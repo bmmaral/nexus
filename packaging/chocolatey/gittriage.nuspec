@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
-    <id>gittriage-cli</id>
+    <id>gittriage</id>
     <version>0.1.0</version>
     <title>GitTriage CLI</title>
     <authors>GitTriage contributors</authors>

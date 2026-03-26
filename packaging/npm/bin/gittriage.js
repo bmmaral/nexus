@@ -20,7 +20,7 @@ function assetSuffix() {
   if (p === "linux" && (a === "x64" || a === "amd64")) return "x86_64-unknown-linux-musl";
   if (p === "win32" && (a === "x64" || a === "amd64")) return "x86_64-pc-windows-msvc.exe";
   throw new Error(
-    `gittriage-cli: unsupported platform ${p}-${a}. Use cargo install or see https://github.com/${REPO}#install`,
+    `gittriage: unsupported platform ${p}-${a}. Use cargo install or see https://github.com/${REPO}#install`,
   );
 }
 
@@ -68,7 +68,7 @@ async function ensureBinary() {
   const suf = assetSuffix();
   const base = `https://github.com/${REPO}/releases/download/v${VERSION}`;
   const remoteName = `gittriage-v${VERSION}-${suf}`;
-  const cacheRoot = path.join(os.homedir(), ".cache", "gittriage-cli", VERSION);
+  const cacheRoot = path.join(os.homedir(), ".cache", "gittriage", VERSION);
   const localName = suf.endsWith(".exe") ? "gittriage.exe" : "gittriage";
   const target = path.join(cacheRoot, localName);
 

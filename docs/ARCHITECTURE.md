@@ -61,7 +61,7 @@ Optional AI-assisted explanations using OpenAI-compatible endpoints. Consumes st
 ### `gittriage-api`
 Axum HTTP **read-only** API over SQLite (powers **`serve`** only). Binds to `127.0.0.1` by default; loads config once at startup. Experimental and secondary to the CLI; not a dashboard backend.
 
-### `gittriage-cli`
+### `gittriage`
 Thin orchestration layer.
 
 ## Data flow

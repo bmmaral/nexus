@@ -10,5 +10,5 @@ $checksum64 = 'REPLACE_WITH_SHA256_FROM_RELEASE'
 # https://github.com/bmmaral/gittriage/releases/download/v$version/gittriage-v$version-x86_64-pc-windows-msvc.exe.sha256
 
 $destination = Join-Path $toolsDir 'gittriage.exe'
-Get-ChocolateyWebFile -PackageName 'gittriage-cli' -FileFullPath $destination -Url64 $url64 -Checksum64 $checksum64 -ChecksumType64 'sha256'
+Get-ChocolateyWebFile -PackageName 'gittriage' -FileFullPath $destination -Url64 $url64 -Checksum64 $checksum64 -ChecksumType64 'sha256'
 Install-BinFile -Name 'gittriage' -Path $destination

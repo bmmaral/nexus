@@ -7,15 +7,15 @@ GitTriage ships **prebuilt binaries** on [GitHub Releases](https://github.com/bm
 When published:
 
 ```bash
-cargo install gittriage-cli
+cargo install gittriage
 ```
 
 Until then, from a git checkout:
 
 ```bash
-cargo install --path crates/gittriage-cli
+cargo install --path crates/gittriage
 # or
-cargo install --locked --git https://github.com/bmmaral/gittriage --tag v0.1.0 --package gittriage-cli
+cargo install --locked --git https://github.com/bmmaral/gittriage --tag v0.1.0 --package gittriage
 ```
 
 ## Homebrew (formula in repo)
@@ -44,18 +44,38 @@ Manifest: [`packaging/scoop/gittriage.json`](../packaging/scoop/gittriage.json).
 Packaging lives under [`packaging/chocolatey/`](../packaging/chocolatey/). Set `checksum64` in `tools/chocolateyinstall.ps1` from the release `.sha256` file for that version, then:
 
 ```powershell
-choco pack packaging/chocolatey/gittriage-cli.nuspec
-choco install gittriage-cli -s . -y
+choco pack packaging/chocolatey/gittriage.nuspec
+choco install gittriage -s . -y
 ```
 
 For a one-off install before the checksum is wired, Chocolatey supports `--ignore-checksums` (not recommended for automation).
 
 ## npm / npx / bunx (thin binary wrapper)
 
-Package: [`packaging/npm/`](../packaging/npm/). It downloads the GitHub Release binary for the current platform into `~/.cache/gittriage-cli/<version>/`.
+Package name on **GitHub Packages**: **`@bmmaral/gittriage`** (`packaging/npm/`). The wrapper downloads the GitHub Release binary for the current platform into `~/.cache/gittriage/<version>/`.
+
+### Install from GitHub Packages
+
+Create or extend `~/.npmrc` (use a classic PAT with `read:packages` if the repo is private):
+
+```
+@bmmaral:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
+```
+
+Then:
 
 ```bash
-cd packaging/npm && npm pack && npm install -g ./gittriage-cli-*.tgz
+npm install -g @bmmaral/gittriage
+gittriage --version
+```
+
+Releases also run [`.github/workflows/npm-github-packages.yml`](../.github/workflows/npm-github-packages.yml) to publish the package when a GitHub Release is published (keep `package.json` `version` aligned with the tag, without a leading `v`).
+
+### Local tarball (for testing)
+
+```bash
+cd packaging/npm && npm pack && npm install -g ./bmmaral-gittriage-*.tgz
 gittriage --version
 ```
 
@@ -67,15 +87,15 @@ bunx --bun ./packaging/npm/bin/gittriage.js -- --version   # after local pack/in
 
 ## AUR (Arch Linux)
 
-Reference [`packaging/aur/PKGBUILD`](../packaging/aur/PKGBUILD): copy into an AUR package, add a `Maintainer:` line, and submit. It builds the `gittriage-cli` crate from the tagged source tarball.
+Reference [`packaging/aur/PKGBUILD`](../packaging/aur/PKGBUILD): copy into an AUR package, add a `Maintainer:` line, and submit. It builds the `gittriage` crate from the tagged source tarball.
 
 ## Nix
 
-A [`flake.nix`](../flake.nix) at the repo root builds `gittriage-cli` from this workspace.
+A [`flake.nix`](../flake.nix) at the repo root builds `gittriage` from this workspace.
 
 ```bash
 nix run .#gittriage -- --version
-nix build .#gittriage-cli
+nix build .#gittriage
 ```
 
 First time in a fresh clone, generate a lockfile:
@@ -93,7 +113,7 @@ nix flake lock
 | Homebrew formula (in-repo) | Supported template |
 | Nix flake | Supported template |
 | AUR PKGBUILD | Upstream reference (maintainer submits to AUR) |
-| npm wrapper | Supported template |
+| npm wrapper (GitHub Packages) | Supported template |
 | Scoop / Chocolatey | Supported templates (checksums per release) |
 
 Windows binaries exist **from the first release that includes the `windows` job** in `.github/workflows/release.yml`; update Scoop/Chocolatey hashes from the published `.sha256` files.

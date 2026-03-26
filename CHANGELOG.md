@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Breaking (packaging):** Cargo package `gittriage-cli` renamed to **`gittriage`** (same binary name `gittriage`). Chocolatey id is now **`gittriage`**. npm wrapper is published as **`@bmmaral/gittriage`** on **GitHub Packages** (see `docs/DISTRIBUTION.md`).
+
 ## v0.1.0 — 2026-03-25
 
 Initial public release of **GitTriage** (formerly Nexus).
@@ -7,7 +11,7 @@ Initial public release of **GitTriage** (formerly Nexus).
 ### Highlights
 
 - **Full rename** from `nexus` to `gittriage` across all crates, binary, docs, and packaging.
-- **13-crate Rust workspace**: gittriage-core, gittriage-config, gittriage-db, gittriage-scan, gittriage-git, gittriage-github, gittriage-plan, gittriage-report, gittriage-adapters, gittriage-tui, gittriage-ai, gittriage-api, gittriage-cli.
+- **13-crate Rust workspace**: gittriage-core, gittriage-config, gittriage-db, gittriage-scan, gittriage-git, gittriage-github, gittriage-plan, gittriage-report, gittriage-adapters, gittriage-tui, gittriage-ai, gittriage-api, gittriage (CLI crate / binary).
 - **Stable core commands**: `scan`, `score`, `plan`, `report`, `doctor`, `tools`, `export`, `import`, `explain`.
 - **Secondary**: `tui` — interactive terminal browser with sort, filter, evidence, pin, export.
 - **Experimental**: `ai-summary`, `apply --dry-run`, `serve`.

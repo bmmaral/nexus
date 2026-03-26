@@ -806,6 +806,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "gittriage"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "clap_complete",
+ "gittriage-adapters",
+ "gittriage-ai",
+ "gittriage-api",
+ "gittriage-config",
+ "gittriage-core",
+ "gittriage-db",
+ "gittriage-git",
+ "gittriage-github",
+ "gittriage-plan",
+ "gittriage-report",
+ "gittriage-scan",
+ "gittriage-tui",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "which",
+]
+
+[[package]]
 name = "gittriage-adapters"
 version = "0.1.0"
 dependencies = [
@@ -844,35 +873,6 @@ dependencies = [
  "tokio",
  "tower-http",
  "tracing",
-]
-
-[[package]]
-name = "gittriage-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "clap_complete",
- "gittriage-adapters",
- "gittriage-ai",
- "gittriage-api",
- "gittriage-config",
- "gittriage-core",
- "gittriage-db",
- "gittriage-git",
- "gittriage-github",
- "gittriage-plan",
- "gittriage-report",
- "gittriage-scan",
- "gittriage-tui",
- "serde_json",
- "tempfile",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "uuid",
- "which",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 [package]
-name = "gittriage-cli"
+name = "gittriage"
 description = "Local-first CLI to scan, score, and clean up repository fleets"
 version.workspace = true
 edition.workspace = true

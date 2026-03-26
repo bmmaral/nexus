@@ -24,7 +24,7 @@ jobs:
       - name: Build static CLI (musl)
         env:
           CC: x86_64-linux-musl-gcc
-        run: cargo build --release --target x86_64-unknown-linux-musl -p gittriage-cli
+        run: cargo build --release --target x86_64-unknown-linux-musl -p gittriage
 
       - name: Stage artifacts
         run: |
@@ -58,10 +58,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build CLI (Apple Silicon, native)
-        run: cargo build --release -p gittriage-cli
+        run: cargo build --release -p gittriage
 
       - name: Build CLI (Intel, cross-compile)
-        run: cargo build --release --target x86_64-apple-darwin -p gittriage-cli
+        run: cargo build --release --target x86_64-apple-darwin -p gittriage
 
       - name: Stage artifacts
         run: |
@@ -89,7 +89,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build CLI
-        run: cargo build --release -p gittriage-cli
+        run: cargo build --release -p gittriage
 
       - name: Stage artifact
         shell: bash

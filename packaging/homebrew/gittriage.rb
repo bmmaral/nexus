@@ -18,7 +18,7 @@ class GitTriage < Formula
   depends_on "rust" => :build
 
   def install
-    system "cargo", "install", *std_cargo_args(root: libexec, path: "crates/gittriage-cli")
+    system "cargo", "install", *std_cargo_args(root: libexec, path: "crates/gittriage")
     bin.install_symlink libexec/"bin"/"gittriage"
   end
 

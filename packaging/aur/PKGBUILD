@@ -1,5 +1,5 @@
 # Maintainer: submit to AUR with your own maintainer line; this file is upstream reference.
-pkgname=gittriage-cli
+pkgname=gittriage
 pkgver=0.1.0
 pkgrel=1
 pkgdesc='Local-first repo fleet triage CLI'
@@ -16,7 +16,7 @@ prepare() {
 
 build() {
   cd "$srcdir/gittriage-$pkgver"
-  cargo build --locked --release --package gittriage-cli
+  cargo build --locked --release --package gittriage
 }
 
 package() {

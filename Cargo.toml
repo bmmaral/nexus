@@ -1,6 +1,6 @@
 [workspace]
 members = [
-  "crates/gittriage-cli",
+  "crates/gittriage",
   "crates/gittriage-core",
   "crates/gittriage-config",
   "crates/gittriage-db",
@@ -10,9 +10,9 @@ members = [
   "crates/gittriage-plan",
   "crates/gittriage-report",
   "crates/gittriage-adapters",
-    "crates/gittriage-api",
-    "crates/gittriage-tui",
-    "crates/gittriage-ai",
+  "crates/gittriage-api",
+  "crates/gittriage-tui",
+  "crates/gittriage-ai",
 ]
 resolver = "2"
 

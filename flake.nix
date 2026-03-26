@@ -13,16 +13,16 @@
         manifest = (builtins.fromTOML (builtins.readFile ./Cargo.toml)).workspace.package;
       in
       {
-        packages.gittriage-cli = pkgs.rustPlatform.buildRustPackage {
-          pname = "gittriage-cli";
+        packages.gittriage = pkgs.rustPlatform.buildRustPackage {
+          pname = "gittriage";
           version = manifest.version;
           src = ./.;
           cargoLock.lockFile = ./Cargo.lock;
-          cargoBuildFlags = [ "--package" "gittriage-cli" ];
+          cargoBuildFlags = [ "--package" "gittriage" ];
         };
-        packages.default = self.packages.${system}.gittriage-cli;
+        packages.default = self.packages.${system}.gittriage;
         apps.default = flake-utils.lib.mkApp {
-          drv = self.packages.${system}.gittriage-cli;
+          drv = self.packages.${system}.gittriage;
           name = "gittriage";
         };
       });

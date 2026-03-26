@@ -49,7 +49,7 @@ jobs:
 
       # Release ships Intel macOS binaries built via cross-compile from Apple Silicon runners.
       - name: Cross-build CLI for x86_64-apple-darwin
-        run: cargo build --release --target x86_64-apple-darwin -p gittriage-cli
+        run: cargo build --release --target x86_64-apple-darwin -p gittriage
 
   windows:
     runs-on: windows-latest
@@ -93,7 +93,7 @@ jobs:
       - name: Cross-build static CLI (musl, release)
         env:
           CC: x86_64-linux-musl-gcc
-        run: cargo build --release --target x86_64-unknown-linux-musl -p gittriage-cli
+        run: cargo build --release --target x86_64-unknown-linux-musl -p gittriage
 
   cargo-deny:
     runs-on: ubuntu-latest

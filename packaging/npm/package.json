@@ -1,11 +1,11 @@
 {
-  "name": "gittriage",
+  "name": "@bmmaral/gittriage",
   "version": "0.1.0",
   "description": "gittriage - Clean your repo chaos. Scan, score, and fix your repositories from the terminal.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bmmaral/gittriage.git",
+    "url": "git+https://github.com/bmmaral/gittriage.git",
     "directory": "packaging/npm"
   },
   "homepage": "https://github.com/bmmaral/gittriage",
@@ -28,5 +28,8 @@
     "cleanup",
     "triage",
     "duplicates"
-  ]
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }
