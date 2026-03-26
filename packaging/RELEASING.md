@@ -1,6 +1,6 @@
 # Release checklist (packaging)
 
-1. Tag `vX.Y.Z` and push; GitHub Actions **release** workflow uploads binaries + `.sha256` sidecars.
+1. Tag `vX.Y.Z` and push; GitHub Actions **release** workflow uploads binaries + `.sha256` sidecars. macOS arm64 and x86_64 are built on one `macos-latest` runner (native + `x86_64-apple-darwin` cross-compile), so Intel macOS assets do not depend on deprecated `macos-13` hosts.
 2. Update **source tarball** checksum anywhere it is pinned:
    - `packaging/homebrew/gittriage.rb` (`url` + `sha256`)
    - `packaging/aur/PKGBUILD` (`sha256sums`)

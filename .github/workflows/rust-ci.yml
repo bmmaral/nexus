@@ -35,15 +35,21 @@ jobs:
 
       - name: Install stable Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
 
-      - name: Build workspace
+      - name: Build workspace (native)
         run: cargo build --workspace
 
       - name: Test workspace
         run: cargo test --workspace
+
+      # Release ships Intel macOS binaries built via cross-compile from Apple Silicon runners.
+      - name: Cross-build CLI for x86_64-apple-darwin
+        run: cargo build --release --target x86_64-apple-darwin -p gittriage-cli
 
   windows:
     runs-on: windows-latest

@@ -11,6 +11,15 @@
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20win-lightgrey?style=flat-square" alt="Platform">
 </p>
 
+<p align="center">
+  <a href="https://github.com/bmmaral/gittriage/releases/latest"><img src="https://img.shields.io/github/v/release/bmmaral/gittriage?sort=semver&style=flat-square&logo=github&label=release" alt="GitHub release"></a>
+  <a href="https://crates.io/crates/gittriage-cli"><img src="https://img.shields.io/crates/v/gittriage-cli?style=flat-square&logo=rust&label=crates.io" alt="crates.io"></a>
+  <a href="https://www.npmjs.com/package/gittriage"><img src="https://img.shields.io/npm/v/gittriage?style=flat-square&logo=npm&label=npm" alt="npm"></a>
+  <a href="https://community.chocolatey.org/packages/gittriage-cli"><img src="https://img.shields.io/chocolatey/v/gittriage-cli?style=flat-square&logo=chocolatey&label=chocolatey" alt="Chocolatey"></a>
+  <a href="https://github.com/bmmaral/gittriage/tree/main/packaging/homebrew"><img src="https://img.shields.io/badge/homebrew-formula%20(shipped)-FBB040?style=flat-square&logo=homebrew&logoColor=white" alt="Homebrew formula"></a>
+  <a href="https://github.com/bmmaral/gittriage/tree/main/packaging/scoop"><img src="https://img.shields.io/badge/scoop-manifest%20(shipped)-7E56FF?style=flat-square" alt="Scoop manifest"></a>
+</p>
+
 ---
 
 **GitTriage** inventories your local git clones, ingests GitHub metadata (via `gh`), groups everything into **clusters**, scores them, and writes a deterministic **plan** — without touching your working trees.

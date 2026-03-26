@@ -47,34 +47,37 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  # Single macOS runner: native arm64 + cross x86_64 (avoids macos-13 Intel runner deprecation/cancellation).
   macos:
-    strategy:
-      matrix:
-        include:
-          - target: aarch64-apple-darwin
-            runner: macos-latest
-          - target: x86_64-apple-darwin
-            runner: macos-13
-    runs-on: ${{ matrix.runner }}
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin
       - uses: Swatinem/rust-cache@v2
 
-      - name: Build CLI
+      - name: Build CLI (Apple Silicon, native)
         run: cargo build --release -p gittriage-cli
 
-      - name: Stage artifact
-        run: |
-          cp target/release/gittriage "gittriage-${GITHUB_REF_NAME}-${{ matrix.target }}"
-          shasum -a 256 "gittriage-${GITHUB_REF_NAME}-${{ matrix.target }}" | awk '{print $1}' > "gittriage-${GITHUB_REF_NAME}-${{ matrix.target }}.sha256"
+      - name: Build CLI (Intel, cross-compile)
+        run: cargo build --release --target x86_64-apple-darwin -p gittriage-cli
 
-      - name: Upload artifact
+      - name: Stage artifacts
+        run: |
+          cp "target/release/gittriage" "gittriage-${GITHUB_REF_NAME}-aarch64-apple-darwin"
+          shasum -a 256 "gittriage-${GITHUB_REF_NAME}-aarch64-apple-darwin" | awk '{print $1}' > "gittriage-${GITHUB_REF_NAME}-aarch64-apple-darwin.sha256"
+          cp "target/x86_64-apple-darwin/release/gittriage" "gittriage-${GITHUB_REF_NAME}-x86_64-apple-darwin"
+          shasum -a 256 "gittriage-${GITHUB_REF_NAME}-x86_64-apple-darwin" | awk '{print $1}' > "gittriage-${GITHUB_REF_NAME}-x86_64-apple-darwin.sha256"
+
+      - name: Upload artifacts
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            gittriage-${{ github.ref_name }}-${{ matrix.target }}
-            gittriage-${{ github.ref_name }}-${{ matrix.target }}.sha256
+            gittriage-${{ github.ref_name }}-aarch64-apple-darwin
+            gittriage-${{ github.ref_name }}-aarch64-apple-darwin.sha256
+            gittriage-${{ github.ref_name }}-x86_64-apple-darwin
+            gittriage-${{ github.ref_name }}-x86_64-apple-darwin.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
