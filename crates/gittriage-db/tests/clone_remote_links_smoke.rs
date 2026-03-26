@@ -15,7 +15,7 @@ fn replace_clone_remote_links_replaces_existing_rows() {
         finished_at: Some(Utc::now()),
         roots: vec!["/tmp/root".into()],
         github_owner: None,
-        version: "0.1.0".into(),
+        version: "0.1.1".into(),
     };
     db.save_run(&run).expect("save run");
 

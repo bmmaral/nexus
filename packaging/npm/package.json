@@ -1,6 +1,6 @@
 {
   "name": "@bmmaral/gittriage",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "gittriage - Clean your repo chaos. Scan, score, and fix your repositories from the terminal.",
   "license": "MIT",
   "repository": {

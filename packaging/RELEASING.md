@@ -14,6 +14,6 @@
 Quick checksums from a machine with `sha256sum`:
 
 ```bash
-TAG=v0.1.0
+TAG=v0.1.1
 for f in gittriage-${TAG}-*; do sha256sum "$f"; done
 ```

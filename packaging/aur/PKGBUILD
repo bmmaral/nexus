@@ -1,6 +1,6 @@
 # Maintainer: submit to AUR with your own maintainer line; this file is upstream reference.
 pkgname=gittriage
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc='Local-first repo fleet triage CLI'
 arch=('x86_64' 'aarch64')

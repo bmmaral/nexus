@@ -15,7 +15,7 @@ fn load_inventory_includes_latest_run() {
         finished_at: Some(Utc::now()),
         roots: vec!["/tmp".into()],
         github_owner: None,
-        version: "0.1.0".into(),
+        version: "0.1.1".into(),
     };
     db.save_run(&run).expect("save_run");
     db.save_clones(

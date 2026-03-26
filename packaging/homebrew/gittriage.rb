@@ -10,8 +10,8 @@
 class GitTriage < Formula
   desc "Local-first repo fleet triage CLI"
   homepage "https://github.com/bmmaral/gittriage"
-  url "https://github.com/bmmaral/gittriage/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed"
+  url "https://github.com/bmmaral/gittriage/archive/refs/tags/v0.1.1.tar.gz"
+  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
   license "MIT"
   head "https://github.com/bmmaral/gittriage.git", branch: "main"
 

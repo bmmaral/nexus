@@ -1,11 +1,11 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local-first repo fleet triage CLI (inventory, cluster, score, plan).",
   "homepage": "https://github.com/bmmaral/gittriage",
   "license": "MIT",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/bmmaral/gittriage/releases/download/v0.1.0/gittriage-v0.1.0-x86_64-pc-windows-msvc.exe",
+      "url": "https://github.com/bmmaral/gittriage/releases/download/v0.1.1/gittriage-v0.1.1-x86_64-pc-windows-msvc.exe",
       "hash": "0000000000000000000000000000000000000000000000000000000000000000"
     }
   },

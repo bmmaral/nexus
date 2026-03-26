@@ -1,9 +1,16 @@
 # Changelog
 
-## Unreleased
+## v0.1.1 — 2026-03-26
+
+### Packaging & distribution
 
 - **Breaking (packaging):** Cargo package `gittriage-cli` renamed to **`gittriage`** (same binary name `gittriage`). Chocolatey id is now **`gittriage`**. npm wrapper is published as **`@bmmaral/gittriage`** on **GitHub Packages** (see `docs/DISTRIBUTION.md`).
-- **CI / README:** GitHub Packages `npm publish` hardened (auth line in `.npmrc`, `NPM_CONFIG_PROVENANCE=false`). README registry badges no longer use crates.io / Chocolatey community endpoints until those registries actually list the package (avoids red Shields “not found”).
+- **CI / README:** GitHub Packages `npm publish` hardened (auth line in `.npmrc`, `NPM_CONFIG_PROVENANCE=false`). README registry badges use honest labels for crates.io / Chocolatey until those registries list the package.
+
+### Fixes
+
+- macOS x86_64 release artifacts built via cross-compile on `macos-latest` (no flaky `macos-13` runner).
+- Homebrew formula source URL aligned with tagged releases (checksum refreshed per tag in `packaging/homebrew/gittriage.rb`).
 
 ## v0.1.0 — 2026-03-25
 

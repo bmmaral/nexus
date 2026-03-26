@@ -24,4 +24,4 @@ npm pack
 npm install -g ./bmmaral-gittriage-*.tgz
 ```
 
-Requires a published [GitHub Release](https://github.com/bmmaral/gittriage/releases) whose `version` in `package.json` matches the tag (e.g. `0.1.0` for tag `v0.1.0`).
+Requires a published [GitHub Release](https://github.com/bmmaral/gittriage/releases) whose `version` in `package.json` matches the tag (e.g. `0.1.1` for tag `v0.1.1`).

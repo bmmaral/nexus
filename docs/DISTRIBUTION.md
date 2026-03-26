@@ -15,7 +15,7 @@ Until then, from a git checkout:
 ```bash
 cargo install --path crates/gittriage
 # or
-cargo install --locked --git https://github.com/bmmaral/gittriage --tag v0.1.0 --package gittriage
+cargo install --locked --git https://github.com/bmmaral/gittriage --tag v0.1.1 --package gittriage
 ```
 
 ## Homebrew (formula in repo)
@@ -79,7 +79,7 @@ cd packaging/npm && npm pack && npm install -g ./bmmaral-gittriage-*.tgz
 gittriage --version
 ```
 
-Keep `package.json` `version` in sync with a GitHub tag (`v0.1.0` → assets `gittriage-v0.1.0-…`).
+Keep `package.json` `version` in sync with a GitHub tag (`v0.1.1` → assets `gittriage-v0.1.1-…`).
 
 ```bash
 bunx --bun ./packaging/npm/bin/gittriage.js -- --version   # after local pack/install
