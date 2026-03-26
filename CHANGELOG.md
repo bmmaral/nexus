@@ -3,6 +3,7 @@
 ## Unreleased
 
 - **Breaking (packaging):** Cargo package `gittriage-cli` renamed to **`gittriage`** (same binary name `gittriage`). Chocolatey id is now **`gittriage`**. npm wrapper is published as **`@bmmaral/gittriage`** on **GitHub Packages** (see `docs/DISTRIBUTION.md`).
+- **CI / README:** GitHub Packages `npm publish` hardened (auth line in `.npmrc`, `NPM_CONFIG_PROVENANCE=false`). README registry badges no longer use crates.io / Chocolatey community endpoints until those registries actually list the package (avoids red Shields “not found”).
 
 ## v0.1.0 — 2026-03-25
 
