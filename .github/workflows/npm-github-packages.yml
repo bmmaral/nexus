@@ -1,7 +1,8 @@
 name: npm-github-packages
 
 # Publishes `packaging/npm` to GitHub Packages as @bmmaral/gittriage.
-# Requires a GitHub Release with matching binaries (see release workflow).
+# If a release existed before this workflow was added, run it manually:
+#   Actions → npm-github-packages → Run workflow
 
 on:
   release:
@@ -24,8 +25,15 @@ jobs:
           registry-url: https://npm.pkg.github.com
           scope: "@bmmaral"
 
+      # Local .npmrc (scope only) does not include a token; merge an explicit
+      # auth line so publish always sees NODE_AUTH_TOKEN (setup-node + project .npmrc
+      # can be finicky in some npm versions).
       - name: Publish to GitHub Packages
         working-directory: packaging/npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm publish
+          # npm 10+ may try npmjs provenance in CI; GitHub Packages rejects it.
+          NPM_CONFIG_PROVENANCE: "false"
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" >> .npmrc
+          npm publish
