@@ -11,7 +11,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.code-workspace
-.editorconfig
 
 # Environment & Secrets
 .env
