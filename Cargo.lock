@@ -806,6 +806,190 @@ dependencies = [
 ]
 
 [[package]]
+name = "gittriage-adapters"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "gittriage-core",
+ "serde_json",
+ "tracing",
+ "uuid",
+ "which",
+]
+
+[[package]]
+name = "gittriage-ai"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "gittriage-core",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "gittriage-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "gittriage-config",
+ "gittriage-db",
+ "gittriage-plan",
+ "serde_json",
+ "tokio",
+ "tower-http",
+ "tracing",
+]
+
+[[package]]
+name = "gittriage-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "clap_complete",
+ "gittriage-adapters",
+ "gittriage-ai",
+ "gittriage-api",
+ "gittriage-config",
+ "gittriage-core",
+ "gittriage-db",
+ "gittriage-git",
+ "gittriage-github",
+ "gittriage-plan",
+ "gittriage-report",
+ "gittriage-scan",
+ "gittriage-tui",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "which",
+]
+
+[[package]]
+name = "gittriage-config"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "directories",
+ "serde",
+ "tempfile",
+ "toml",
+]
+
+[[package]]
+name = "gittriage-core"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "gittriage-db"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "gittriage-core",
+ "rusqlite",
+ "serde_json",
+ "tempfile",
+ "uuid",
+]
+
+[[package]]
+name = "gittriage-git"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "gittriage-core",
+ "regex",
+ "tracing",
+]
+
+[[package]]
+name = "gittriage-github"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "gittriage-core",
+ "serde",
+ "serde_json",
+ "tracing",
+ "uuid",
+ "which",
+]
+
+[[package]]
+name = "gittriage-plan"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "gittriage-core",
+ "gittriage-git",
+ "serde",
+ "serde_json",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "gittriage-report"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "gittriage-core",
+ "insta",
+ "serde_json",
+]
+
+[[package]]
+name = "gittriage-scan"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "blake3",
+ "gittriage-core",
+ "glob",
+ "ignore",
+ "regex",
+ "serde",
+ "tempfile",
+ "tracing",
+ "uuid",
+ "walkdir",
+]
+
+[[package]]
+name = "gittriage-tui"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "crossterm",
+ "gittriage-core",
+ "ratatui",
+ "serde_json",
+]
+
+[[package]]
 name = "glob"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1399,190 +1583,6 @@ dependencies = [
  "log",
  "wasi",
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "nexus-adapters"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "nexus-core",
- "serde_json",
- "tracing",
- "uuid",
- "which",
-]
-
-[[package]]
-name = "nexus-ai"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "nexus-core",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "nexus-api"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "nexus-config",
- "nexus-db",
- "nexus-plan",
- "serde_json",
- "tokio",
- "tower-http",
- "tracing",
-]
-
-[[package]]
-name = "nexus-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "clap_complete",
- "nexus-adapters",
- "nexus-ai",
- "nexus-api",
- "nexus-config",
- "nexus-core",
- "nexus-db",
- "nexus-git",
- "nexus-github",
- "nexus-plan",
- "nexus-report",
- "nexus-scan",
- "nexus-tui",
- "serde_json",
- "tempfile",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "uuid",
- "which",
-]
-
-[[package]]
-name = "nexus-config"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "directories",
- "serde",
- "tempfile",
- "toml",
-]
-
-[[package]]
-name = "nexus-core"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "serde",
- "serde_json",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "nexus-db"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "nexus-core",
- "rusqlite",
- "serde_json",
- "tempfile",
- "uuid",
-]
-
-[[package]]
-name = "nexus-git"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "nexus-core",
- "regex",
- "tracing",
-]
-
-[[package]]
-name = "nexus-github"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "nexus-core",
- "serde",
- "serde_json",
- "tracing",
- "uuid",
- "which",
-]
-
-[[package]]
-name = "nexus-plan"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "nexus-core",
- "nexus-git",
- "serde",
- "serde_json",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "nexus-report"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "insta",
- "nexus-core",
- "serde_json",
-]
-
-[[package]]
-name = "nexus-scan"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "blake3",
- "glob",
- "ignore",
- "nexus-core",
- "regex",
- "serde",
- "tempfile",
- "tracing",
- "uuid",
- "walkdir",
-]
-
-[[package]]
-name = "nexus-tui"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "crossterm",
- "nexus-core",
- "ratatui",
- "serde_json",
 ]
 
 [[package]]

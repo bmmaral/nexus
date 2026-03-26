@@ -1,0 +1,38 @@
+[package]
+name = "gittriage-cli"
+description = "Local-first CLI to scan, score, and clean up repository fleets"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "gittriage"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+chrono.workspace = true
+clap.workspace = true
+clap_complete.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true
+which.workspace = true
+
+gittriage-adapters = { path = "../gittriage-adapters" }
+gittriage-ai = { path = "../gittriage-ai" }
+gittriage-api = { path = "../gittriage-api" }
+gittriage-config = { path = "../gittriage-config" }
+gittriage-core = { path = "../gittriage-core" }
+gittriage-db = { path = "../gittriage-db" }
+gittriage-git = { path = "../gittriage-git" }
+gittriage-github = { path = "../gittriage-github" }
+gittriage-plan = { path = "../gittriage-plan" }
+gittriage-report = { path = "../gittriage-report" }
+gittriage-scan = { path = "../gittriage-scan" }
+gittriage-tui = { path = "../gittriage-tui" }
+
+[dev-dependencies]
+tempfile = "3"

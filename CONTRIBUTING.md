@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve Nexus. This repository is the **Rust** workspace under `crates/`; the historical Python/TypeScript prototype is archived (see `docs/LEGACY_V1.md`).
+Thanks for helping improve GitTriage. This repository is the **Rust** workspace under `crates/`; the historical Python/TypeScript prototype is archived (see `docs/LEGACY_V1.md`).
 
 ## Before you open a PR
 
@@ -11,7 +11,7 @@ Thanks for helping improve Nexus. This repository is the **Rust** workspace unde
 
 ## Scope and safety
 
-Nexus v2 is **read-only by default**: it inventories repos, clusters them, scores them, and emits plans. It must not delete, move, or rewrite user repositories without an explicit, separately reviewed design.
+GitTriage v2 is **read-only by default**: it inventories repos, clusters them, scores them, and emits plans. It must not delete, move, or rewrite user repositories without an explicit, separately reviewed design.
 
 ## Questions
 

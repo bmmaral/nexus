@@ -1,5 +1,5 @@
 {
-  description = "Nexus — local-first repo fleet triage CLI";
+  description = "GitTriage — local-first repo fleet triage CLI";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -13,17 +13,17 @@
         manifest = (builtins.fromTOML (builtins.readFile ./Cargo.toml)).workspace.package;
       in
       {
-        packages.nexus-cli = pkgs.rustPlatform.buildRustPackage {
-          pname = "nexus-cli";
+        packages.gittriage-cli = pkgs.rustPlatform.buildRustPackage {
+          pname = "gittriage-cli";
           version = manifest.version;
           src = ./.;
           cargoLock.lockFile = ./Cargo.lock;
-          cargoBuildFlags = [ "--package" "nexus-cli" ];
+          cargoBuildFlags = [ "--package" "gittriage-cli" ];
         };
-        packages.default = self.packages.${system}.nexus-cli;
+        packages.default = self.packages.${system}.gittriage-cli;
         apps.default = flake-utils.lib.mkApp {
-          drv = self.packages.${system}.nexus-cli;
-          name = "nexus";
+          drv = self.packages.${system}.gittriage-cli;
+          name = "gittriage";
         };
       });
 }

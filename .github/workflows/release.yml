@@ -24,26 +24,26 @@ jobs:
       - name: Build static CLI (musl)
         env:
           CC: x86_64-linux-musl-gcc
-        run: cargo build --release --target x86_64-unknown-linux-musl -p nexus-cli
+        run: cargo build --release --target x86_64-unknown-linux-musl -p gittriage-cli
 
       - name: Stage artifacts
         run: |
-          BIN=target/x86_64-unknown-linux-musl/release/nexus
-          cp "$BIN" "nexus-${GITHUB_REF_NAME}-x86_64-unknown-linux-musl"
-          sha256sum "nexus-${GITHUB_REF_NAME}-x86_64-unknown-linux-musl" | awk '{print $1}' > "nexus-${GITHUB_REF_NAME}-x86_64-unknown-linux-musl.sha256"
+          BIN=target/x86_64-unknown-linux-musl/release/gittriage
+          cp "$BIN" "gittriage-${GITHUB_REF_NAME}-x86_64-unknown-linux-musl"
+          sha256sum "gittriage-${GITHUB_REF_NAME}-x86_64-unknown-linux-musl" | awk '{print $1}' > "gittriage-${GITHUB_REF_NAME}-x86_64-unknown-linux-musl.sha256"
 
           for sh in bash zsh fish; do
-            "$BIN" completions "$sh" > "nexus.${sh}"
+            "$BIN" completions "$sh" > "gittriage.${sh}"
           done
-          tar czf "nexus-${GITHUB_REF_NAME}-completions.tar.gz" nexus.bash nexus.zsh nexus.fish
+          tar czf "gittriage-${GITHUB_REF_NAME}-completions.tar.gz" gittriage.bash gittriage.zsh gittriage.fish
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            nexus-${{ github.ref_name }}-x86_64-unknown-linux-musl
-            nexus-${{ github.ref_name }}-x86_64-unknown-linux-musl.sha256
-            nexus-${{ github.ref_name }}-completions.tar.gz
+            gittriage-${{ github.ref_name }}-x86_64-unknown-linux-musl
+            gittriage-${{ github.ref_name }}-x86_64-unknown-linux-musl.sha256
+            gittriage-${{ github.ref_name }}-completions.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -62,19 +62,19 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build CLI
-        run: cargo build --release -p nexus-cli
+        run: cargo build --release -p gittriage-cli
 
       - name: Stage artifact
         run: |
-          cp target/release/nexus "nexus-${GITHUB_REF_NAME}-${{ matrix.target }}"
-          shasum -a 256 "nexus-${GITHUB_REF_NAME}-${{ matrix.target }}" | awk '{print $1}' > "nexus-${GITHUB_REF_NAME}-${{ matrix.target }}.sha256"
+          cp target/release/gittriage "gittriage-${GITHUB_REF_NAME}-${{ matrix.target }}"
+          shasum -a 256 "gittriage-${GITHUB_REF_NAME}-${{ matrix.target }}" | awk '{print $1}' > "gittriage-${GITHUB_REF_NAME}-${{ matrix.target }}.sha256"
 
       - name: Upload artifact
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            nexus-${{ github.ref_name }}-${{ matrix.target }}
-            nexus-${{ github.ref_name }}-${{ matrix.target }}.sha256
+            gittriage-${{ github.ref_name }}-${{ matrix.target }}
+            gittriage-${{ github.ref_name }}-${{ matrix.target }}.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -86,19 +86,19 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build CLI
-        run: cargo build --release -p nexus-cli
+        run: cargo build --release -p gittriage-cli
 
       - name: Stage artifact
         shell: bash
         run: |
-          cp target/release/nexus.exe "nexus-${GITHUB_REF_NAME}-x86_64-pc-windows-msvc.exe"
-          sha256sum "nexus-${GITHUB_REF_NAME}-x86_64-pc-windows-msvc.exe" | awk '{print $1}' > "nexus-${GITHUB_REF_NAME}-x86_64-pc-windows-msvc.exe.sha256"
+          cp target/release/gittriage.exe "gittriage-${GITHUB_REF_NAME}-x86_64-pc-windows-msvc.exe"
+          sha256sum "gittriage-${GITHUB_REF_NAME}-x86_64-pc-windows-msvc.exe" | awk '{print $1}' > "gittriage-${GITHUB_REF_NAME}-x86_64-pc-windows-msvc.exe.sha256"
 
       - name: Upload artifact
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            nexus-${{ github.ref_name }}-x86_64-pc-windows-msvc.exe
-            nexus-${{ github.ref_name }}-x86_64-pc-windows-msvc.exe.sha256
+            gittriage-${{ github.ref_name }}-x86_64-pc-windows-msvc.exe
+            gittriage-${{ github.ref_name }}-x86_64-pc-windows-msvc.exe.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

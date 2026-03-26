@@ -1,6 +1,6 @@
 # External tools
 
-Nexus can run **without** these programs; they extend what the engine can see. The `--external` flag is supported on: `score`, `plan`, `report`, `explain`, `export --with-plan`, `tui`, and `ai-summary`. The `doctor` command checks for their presence on `PATH`.
+GitTriage can run **without** these programs; they extend what the engine can see. The `--external` flag is supported on: `score`, `plan`, `report`, `explain`, `export --with-plan`, `tui`, and `ai-summary`. The `doctor` command checks for their presence on `PATH`.
 
 ## Support tiers
 
@@ -25,7 +25,7 @@ Used to list repositories for a GitHub user/org when you pass `--github-owner` t
 
 ## `gitleaks`
 
-Secret scanner. When on `PATH` and you use `--external`, Nexus runs gitleaks on each cluster's canonical clone and attaches `gitleaks_detect` evidence.
+Secret scanner. When on `PATH` and you use `--external`, GitTriage runs gitleaks on each cluster's canonical clone and attaches `gitleaks_detect` evidence.
 
 Install: [gitleaks.io](https://gitleaks.io/) or `brew install gitleaks`.
 
@@ -67,8 +67,8 @@ Adapter evidence has `score_delta: 0.0` — it is informational only, not a scor
 ## Checking availability
 
 ```bash
-nexus tools
-nexus tools --format json
+gittriage tools
+gittriage tools --format json
 ```
 
 This prints which of the optional scanners were found on `PATH`.
@@ -79,12 +79,12 @@ Within a single `--external` invocation, each adapter is run at most once per di
 
 ## Timeouts
 
-Each adapter subprocess is limited to **180 seconds** by default. If a tool hangs, Nexus kills it and records evidence such as `timed out after 180s` instead of blocking the pipeline.
+Each adapter subprocess is limited to **180 seconds** by default. If a tool hangs, GitTriage kills it and records evidence such as `timed out after 180s` instead of blocking the pipeline.
 
-Override with `NEXUS_ADAPTER_TIMEOUT_SECS` (integer seconds, 1–86400):
+Override with `GITTRIAGE_ADAPTER_TIMEOUT_SECS` (integer seconds, 1–86400):
 
 ```bash
-NEXUS_ADAPTER_TIMEOUT_SECS=300 nexus plan --write plan.json --external
+GITTRIAGE_ADAPTER_TIMEOUT_SECS=300 gittriage plan --write plan.json --external
 ```
 
 ## Profile integration

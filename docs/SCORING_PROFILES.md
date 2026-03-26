@@ -1,8 +1,8 @@
 # Optional scoring profiles
 
-Nexus’s **default** experience is a single `ScoreBundle` per cluster (`canonical`, `usability`, `recoverability`, `oss_readiness`, `risk`). Optional profiles **do not rewrite those axes**; they add a `scoring_profile_active` evidence item and adjust **which publish/hygiene plan actions** appear (via the `oss_candidate_threshold` baseline). Headline numbers stay comparable across runs unless you change inventory or config.
+GitTriage’s **default** experience is a single `ScoreBundle` per cluster (`canonical`, `usability`, `recoverability`, `oss_readiness`, `risk`). Optional profiles **do not rewrite those axes**; they add a `scoring_profile_active` evidence item and adjust **which publish/hygiene plan actions** appear (via the `oss_candidate_threshold` baseline). Headline numbers stay comparable across runs unless you change inventory or config.
 
-Configure with `planner.scoring_profile` in `nexus.toml` (see `nexus.toml.example`). Accepted values (case-insensitive, `-` or `_` allowed):
+Configure with `planner.scoring_profile` in `gittriage.toml` (see `gittriage.toml.example`). Accepted values (case-insensitive, `-` or `_` allowed):
 
 | Config value | Enum | Effect |
 | --- | --- | --- |
@@ -18,7 +18,7 @@ Configure with `planner.scoring_profile` in `nexus.toml` (see `nexus.toml.exampl
 
 **Signals already in default scores:** `oss_readiness` and `usability` capture license, manifest, README, etc.
 
-**Profile behavior:** Lowers the bar at which license/CI/security **plan actions** are suggested (see `crates/nexus-plan/src/lib.rs`, `effective_oss_threshold`). Scores are unchanged.
+**Profile behavior:** Lowers the bar at which license/CI/security **plan actions** are suggested (see `crates/gittriage-plan/src/lib.rs`, `effective_oss_threshold`). Scores are unchanged.
 
 ## Open Source Readiness
 
@@ -28,9 +28,9 @@ Configure with `planner.scoring_profile` in `nexus.toml` (see `nexus.toml.exampl
 
 ## Security / Supply-Chain Posture
 
-**Goal:** Emphasize review of dependencies, secrets, and provenance; optional tools via `nexus plan --external` / adapters.
+**Goal:** Emphasize review of dependencies, secrets, and provenance; optional tools via `gittriage plan --external` / adapters.
 
-**Profile behavior:** Marker evidence only in v1 (threshold unchanged). Pair with `--external` and `nexus tools` for scanner-backed evidence.
+**Profile behavior:** Marker evidence only in v1 (threshold unchanged). Pair with `--external` and `gittriage tools` for scanner-backed evidence.
 
 ## AI Handoff Readiness
 

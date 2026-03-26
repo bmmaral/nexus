@@ -1,21 +1,21 @@
 # Distribution
 
-Nexus ships **prebuilt binaries** on [GitHub Releases](https://github.com/bmmaral/nexus/releases) (Linux musl x86_64, macOS arm64/x86_64, Windows x86_64) plus `.sha256` sidecars. You can also **build from source** with Rust.
+GitTriage ships **prebuilt binaries** on [GitHub Releases](https://github.com/bmmaral/gittriage/releases) (Linux musl x86_64, macOS arm64/x86_64, Windows x86_64) plus `.sha256` sidecars. You can also **build from source** with Rust.
 
 ## Cargo (from crates.io)
 
 When published:
 
 ```bash
-cargo install nexus-cli
+cargo install gittriage-cli
 ```
 
 Until then, from a git checkout:
 
 ```bash
-cargo install --path crates/nexus-cli
+cargo install --path crates/gittriage-cli
 # or
-cargo install --locked --git https://github.com/bmmaral/nexus --tag v0.1.0 --package nexus-cli
+cargo install --locked --git https://github.com/bmmaral/gittriage --tag v0.1.0 --package gittriage-cli
 ```
 
 ## Homebrew (formula in repo)
@@ -23,59 +23,59 @@ cargo install --locked --git https://github.com/bmmaral/nexus --tag v0.1.0 --pac
 Builds from the release **source tarball** (Rust required):
 
 ```bash
-brew install --formula ./packaging/homebrew/nexus.rb
+brew install --formula ./packaging/homebrew/gittriage.rb
 ```
 
-After each upstream tag, update `url`, `sha256`, and `version` in `packaging/homebrew/nexus.rb` (tarball checksum: `curl -sL …/vX.Y.Z.tar.gz | shasum -a 256`).
+After each upstream tag, update `url`, `sha256`, and `version` in `packaging/homebrew/gittriage.rb` (tarball checksum: `curl -sL …/vX.Y.Z.tar.gz | shasum -a 256`).
 
-To publish a **tap**, mirror `nexus.rb` into a `homebrew-*` repository’s `Formula/` directory and document `brew tap owner/repo`.
+To publish a **tap**, mirror `gittriage.rb` into a `homebrew-*` repository’s `Formula/` directory and document `brew tap owner/repo`.
 
 ## Scoop (Windows)
 
-Manifest: [`packaging/scoop/nexus.json`](../packaging/scoop/nexus.json).
+Manifest: [`packaging/scoop/gittriage.json`](../packaging/scoop/gittriage.json).
 
 1. Copy the manifest into a Scoop bucket (or install from a raw URL).
 2. Set `"hash"` for the Windows `.exe` to the value from the matching `.sha256` file on the release, **or** use `checkver` / `autoupdate` to refresh from `$url.sha256`.
 
-`pre_install` renames the downloaded executable to `nexus.exe`.
+`pre_install` renames the downloaded executable to `gittriage.exe`.
 
 ## Chocolatey (Windows)
 
 Packaging lives under [`packaging/chocolatey/`](../packaging/chocolatey/). Set `checksum64` in `tools/chocolateyinstall.ps1` from the release `.sha256` file for that version, then:
 
 ```powershell
-choco pack packaging/chocolatey/nexus-cli.nuspec
-choco install nexus-cli -s . -y
+choco pack packaging/chocolatey/gittriage-cli.nuspec
+choco install gittriage-cli -s . -y
 ```
 
 For a one-off install before the checksum is wired, Chocolatey supports `--ignore-checksums` (not recommended for automation).
 
 ## npm / npx / bunx (thin binary wrapper)
 
-Package: [`packaging/npm/`](../packaging/npm/). It downloads the GitHub Release binary for the current platform into `~/.cache/nexus-cli/<version>/`.
+Package: [`packaging/npm/`](../packaging/npm/). It downloads the GitHub Release binary for the current platform into `~/.cache/gittriage-cli/<version>/`.
 
 ```bash
-cd packaging/npm && npm pack && npm install -g ./nexus-cli-*.tgz
-nexus --version
+cd packaging/npm && npm pack && npm install -g ./gittriage-cli-*.tgz
+gittriage --version
 ```
 
-Keep `package.json` `version` in sync with a GitHub tag (`v0.1.0` → assets `nexus-v0.1.0-…`).
+Keep `package.json` `version` in sync with a GitHub tag (`v0.1.0` → assets `gittriage-v0.1.0-…`).
 
 ```bash
-bunx --bun ./packaging/npm/bin/nexus.js -- --version   # after local pack/install
+bunx --bun ./packaging/npm/bin/gittriage.js -- --version   # after local pack/install
 ```
 
 ## AUR (Arch Linux)
 
-Reference [`packaging/aur/PKGBUILD`](../packaging/aur/PKGBUILD): copy into an AUR package, add a `Maintainer:` line, and submit. It builds the `nexus-cli` crate from the tagged source tarball.
+Reference [`packaging/aur/PKGBUILD`](../packaging/aur/PKGBUILD): copy into an AUR package, add a `Maintainer:` line, and submit. It builds the `gittriage-cli` crate from the tagged source tarball.
 
 ## Nix
 
-A [`flake.nix`](../flake.nix) at the repo root builds `nexus-cli` from this workspace.
+A [`flake.nix`](../flake.nix) at the repo root builds `gittriage-cli` from this workspace.
 
 ```bash
-nix run .#nexus -- --version
-nix build .#nexus-cli
+nix run .#gittriage -- --version
+nix build .#gittriage-cli
 ```
 
 First time in a fresh clone, generate a lockfile:

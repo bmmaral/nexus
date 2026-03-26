@@ -2,7 +2,7 @@
 
 ## Scope
 
-Nexus is a local-first inventory and planning tool for Git repositories.
+GitTriage is a local-first inventory and planning tool for Git repositories.
 
 ## Reporting
 

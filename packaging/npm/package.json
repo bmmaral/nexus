@@ -1,29 +1,32 @@
 {
-  "name": "nexus-cli",
+  "name": "gittriage",
   "version": "0.1.0",
-  "description": "Thin npm installer for the Nexus binary (https://github.com/bmmaral/nexus). Not a JS port.",
+  "description": "gittriage - Clean your repo chaos. Scan, score, and fix your repositories from the terminal.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bmmaral/nexus.git",
+    "url": "https://github.com/bmmaral/gittriage.git",
     "directory": "packaging/npm"
   },
-  "homepage": "https://github.com/bmmaral/nexus",
-  "bugs": "https://github.com/bmmaral/nexus/issues",
+  "homepage": "https://github.com/bmmaral/gittriage",
+  "bugs": "https://github.com/bmmaral/gittriage/issues",
   "engines": {
     "node": ">=18"
   },
   "bin": {
-    "nexus": "bin/nexus.js"
+    "gittriage": "bin/gittriage.js"
   },
   "files": [
-    "bin/nexus.js",
+    "bin/gittriage.js",
     "README.md"
   ],
   "keywords": [
-    "nexus",
+    "gittriage",
     "git",
     "cli",
-    "repos"
+    "repos",
+    "cleanup",
+    "triage",
+    "duplicates"
   ]
 }

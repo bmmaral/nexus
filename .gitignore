@@ -1,7 +1,7 @@
 # Rust
 target/
-nexus-plan.json
-nexus-plan-tui-export.json
+gittriage-plan.json
+gittriage-plan-tui-export.json
 
 # OS / Editors
 .DS_Store
@@ -17,9 +17,9 @@ Thumbs.db
 *.env
 .env.*
 
-# Nexus local state (never commit)
-.nexus/
-*.nexus.log
+# GitTriage local state (never commit)
+.gittriage/
+*.gittriage.log
 reports/*.temp.*
 conversations/
 

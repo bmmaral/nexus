@@ -1,0 +1,12 @@
+[package]
+name = "gittriage-git"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+chrono.workspace = true
+regex.workspace = true
+tracing.workspace = true
+gittriage-core = { path = "../gittriage-core" }

@@ -87,7 +87,7 @@ jobs:
       - name: Cross-build static CLI (musl, release)
         env:
           CC: x86_64-linux-musl-gcc
-        run: cargo build --release --target x86_64-unknown-linux-musl -p nexus-cli
+        run: cargo build --release --target x86_64-unknown-linux-musl -p gittriage-cli
 
   cargo-deny:
     runs-on: ubuntu-latest

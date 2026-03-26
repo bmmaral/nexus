@@ -4,7 +4,7 @@ The `main` branch ships **only** the Rust workspace under `crates/`. Older Pytho
 
 ## Core idea
 
-Nexus is a **local-first repo fleet triage** CLI: inventory, identity resolution, scoring, planning, and reports—without a web dashboard (see `docs/PRODUCT_STRATEGY.md`, `docs/FAQ.md`).
+GitTriage is a **local-first repo fleet triage** CLI: inventory, identity resolution, scoring, planning, and reports—without a web dashboard (see `docs/PRODUCT_STRATEGY.md`, `docs/FAQ.md`).
 
 The system is intentionally split into layers:
 
@@ -21,47 +21,47 @@ The system is intentionally split into layers:
    Produce a deterministic action plan without mutating anything.
 
 5. **Presentation (CLI) and optional hooks**  
-   Markdown/JSON reports from the CLI. **`nexus serve`** provides a small **experimental** read-only JSON API over SQLite for local scripting; it is secondary to the CLI, not a stable platform surface.
+   Markdown/JSON reports from the CLI. **`gittriage serve`** provides a small **experimental** read-only JSON API over SQLite for local scripting; it is secondary to the CLI, not a stable platform surface.
 
 ## Workspace crates
 
-### `nexus-core`
+### `gittriage-core`
 Pure domain types and shared enums.
 
-### `nexus-config`
+### `gittriage-config`
 Config file loading and defaults.
 
-### `nexus-db`
-SQLite connection and persistence boundary. Uses WAL mode, `busy_timeout`, and schema versioning (`nexus_meta` table). Full inventory replace (`replace_inventory_snapshot`) backs **`nexus import`** and clears persisted plan rows.
+### `gittriage-db`
+SQLite connection and persistence boundary. Uses WAL mode, `busy_timeout`, and schema versioning (`gittriage_meta` table). Full inventory replace (`replace_inventory_snapshot`) backs **`gittriage import`** and clears persisted plan rows.
 
-### `nexus-scan`
-Filesystem scanning and project metadata extraction. Supports `git_only` (default) and `project_roots` scan modes, `max_depth`, `.nexusignore` patterns, and automatic stop-at-`.git` to prevent monorepo sub-package noise. Detects SPDX license identifiers, lockfiles, CI configs, and test directories.
+### `gittriage-scan`
+Filesystem scanning and project metadata extraction. Supports `git_only` (default) and `project_roots` scan modes, `max_depth`, `.gittriageignore` patterns, and automatic stop-at-`.git` to prevent monorepo sub-package noise. Detects SPDX license identifiers, lockfiles, CI configs, and test directories.
 
-### `nexus-git`
+### `gittriage-git`
 Git metadata collection via system `git` in v1.
 
-### `nexus-github`
+### `gittriage-github`
 Remote repository ingest via `gh` CLI in v1. Supports up to 5000 repos per owner with truncation warnings.
 
-### `nexus-plan`
+### `gittriage-plan`
 Clustering, scoring, and action generation.
 
-### `nexus-report`
+### `gittriage-report`
 Markdown / JSON rendering.
 
-### `nexus-tui`
-Ratatui-based **read-only** cluster browser (`nexus tui`): sort/filter, evidence list, `nexus.toml` pin snippet, plan JSON export. Same `PlanDocument` as `plan`/`report`; not a dashboard.
+### `gittriage-tui`
+Ratatui-based **read-only** cluster browser (`gittriage tui`): sort/filter, evidence list, `gittriage.toml` pin snippet, plan JSON export. Same `PlanDocument` as `plan`/`report`; not a dashboard.
 
-### `nexus-adapters`
+### `gittriage-adapters`
 Optional CLI integrations (jscpd, semgrep, gitleaks, syft) for plan evidence.
 
-### `nexus-ai`
-Optional AI-assisted explanations using OpenAI-compatible endpoints. Consumes structured plan output only (grounding contract); never modifies scores, canonical selections, or actions. Requires `ai.enabled = true` in config and `NEXUS_AI_API_KEY` or `OPENAI_API_KEY`. See `docs/CLI.md` for `nexus explain --ai` and `nexus ai-summary`.
+### `gittriage-ai`
+Optional AI-assisted explanations using OpenAI-compatible endpoints. Consumes structured plan output only (grounding contract); never modifies scores, canonical selections, or actions. Requires `ai.enabled = true` in config and `GITTRIAGE_AI_API_KEY` or `OPENAI_API_KEY`. See `docs/CLI.md` for `gittriage explain --ai` and `gittriage ai-summary`.
 
-### `nexus-api`
+### `gittriage-api`
 Axum HTTP **read-only** API over SQLite (powers **`serve`** only). Binds to `127.0.0.1` by default; loads config once at startup. Experimental and secondary to the CLI; not a dashboard backend.
 
-### `nexus-cli`
+### `gittriage-cli`
 Thin orchestration layer.
 
 ## Data flow
@@ -69,20 +69,20 @@ Thin orchestration layer.
 ```text
 roots + gh owner
    ↓
-nexus-scan + nexus-git + nexus-github
+gittriage-scan + gittriage-git + gittriage-github
    ↓
 raw inventory persisted in sqlite
    ↓
-nexus-plan resolves clusters
+gittriage-plan resolves clusters
    ↓
-scores + evidence (`nexus score` or inside `nexus plan`)
+scores + evidence (`gittriage score` or inside `gittriage plan`)
    ↓
 plan.json + persisted plan row (`plan`) / report.md (`report`) / interactive browse (`tui`)
 ```
 
 ## Why SQLite first?
 
-Because Nexus is a local-first CLI and needs:
+Because GitTriage is a local-first CLI and needs:
 
 - easy local persistence
 - reproducible runs
@@ -91,7 +91,7 @@ Because Nexus is a local-first CLI and needs:
 
 ## Why no web UI?
 
-The core risk is not presentation—it is **choosing the wrong canonical repo**. The product prioritizes correct inventory + clustering over a browser UI. A dashboard would also drag the project toward hosted state and platform scope; that is an explicit non-goal (`docs/PRODUCT_STRATEGY.md`). The **TUI** (`nexus tui`) provides interactive inspection; it is not a replacement for the CLI engine.
+The core risk is not presentation—it is **choosing the wrong canonical repo**. The product prioritizes correct inventory + clustering over a browser UI. A dashboard would also drag the project toward hosted state and platform scope; that is an explicit non-goal (`docs/PRODUCT_STRATEGY.md`). The **TUI** (`gittriage tui`) provides interactive inspection; it is not a replacement for the CLI engine.
 
 ## Native build dependencies
 

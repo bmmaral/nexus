@@ -1,0 +1,18 @@
+[package]
+name = "gittriage-plan"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+chrono.workspace = true
+serde.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+
+gittriage-core = { path = "../gittriage-core" }
+gittriage-git = { path = "../gittriage-git" }
+
+[dev-dependencies]
+serde_json.workspace = true

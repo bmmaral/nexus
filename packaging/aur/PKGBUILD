@@ -1,25 +1,25 @@
 # Maintainer: submit to AUR with your own maintainer line; this file is upstream reference.
-pkgname=nexus-cli
+pkgname=gittriage-cli
 pkgver=0.1.0
 pkgrel=1
 pkgdesc='Local-first repo fleet triage CLI'
 arch=('x86_64' 'aarch64')
-url='https://github.com/bmmaral/nexus'
+url='https://github.com/bmmaral/gittriage'
 license=('MIT')
 makedepends=('cargo')
-source=("$pkgname-$pkgver.tar.gz::https://github.com/bmmaral/nexus/archive/refs/tags/v$pkgver.tar.gz")
+source=("$pkgname-$pkgver.tar.gz::https://github.com/bmmaral/gittriage/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed')
 
 prepare() {
-  cd "$srcdir/nexus-$pkgver"
+  cd "$srcdir/gittriage-$pkgver"
 }
 
 build() {
-  cd "$srcdir/nexus-$pkgver"
-  cargo build --locked --release --package nexus-cli
+  cd "$srcdir/gittriage-$pkgver"
+  cargo build --locked --release --package gittriage-cli
 }
 
 package() {
-  cd "$srcdir/nexus-$pkgver"
-  install -Dm755 target/release/nexus "$pkgdir/usr/bin/nexus"
+  cd "$srcdir/gittriage-$pkgver"
+  install -Dm755 target/release/gittriage "$pkgdir/usr/bin/gittriage"
 }

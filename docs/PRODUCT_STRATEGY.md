@@ -1,8 +1,8 @@
-# Nexus Product Strategy
+# GitTriage Product Strategy
 
 ## Positioning
 
-**Nexus is a local-first, Rust-first CLI for repo fleet triage.**
+**GitTriage is a local-first, Rust-first CLI for repo fleet triage.**
 
 It helps developers answer three painful questions fast:
 
@@ -10,7 +10,7 @@ It helps developers answer three painful questions fast:
 2. Which copy of a project is the real one?
 3. What should I do next: keep, merge, revive, publish, or archive?
 
-Nexus should not become a web platform, internal developer portal, or always-on analysis service. The product should stay:
+GitTriage should not become a web platform, internal developer portal, or always-on analysis service. The product should stay:
 
 - **CLI-first**
 - **optional TUI**
@@ -23,7 +23,7 @@ Nexus should not become a web platform, internal developer portal, or always-on 
 
 ### Chosen path
 
-Build Nexus as a **lightweight repo fleet triage tool** with:
+Build GitTriage as a **lightweight repo fleet triage tool** with:
 
 - a strong Rust CLI core
 - a thin optional TUI for inspection and overrides
@@ -33,7 +33,7 @@ Build Nexus as a **lightweight repo fleet triage tool** with:
 
 ### Rejected path
 
-Do **not** build Nexus into:
+Do **not** build GitTriage into:
 
 - a heavy web dashboard product
 - a centralized software catalog
@@ -45,7 +45,7 @@ A web dashboard would pull the product toward auth, persistence complexity, remo
 
 ## Product category
 
-Nexus belongs in a distinct category:
+GitTriage belongs in a distinct category:
 
 **repo fleet triage**
 
@@ -84,7 +84,7 @@ The mental model is not “another AI repo tool” and not “a tiny Backstage.�
 
 ## Core jobs to be done
 
-Users hire Nexus to:
+Users hire GitTriage to:
 
 - inventory all local and selected remote repos
 - detect duplicates, forks, clones, and pivots
@@ -127,20 +127,20 @@ Users hire Nexus to:
 
 Core commands for v1:
 
-- `nexus scan` — inventory
-- `nexus score` — scores and evidence (stdout; does not replace persisted plan)
-- `nexus plan` — full plan with actions + persistence
-- `nexus report` — human/machine reports
-- `nexus doctor`
-- `nexus tools`
-- `nexus explain` — deterministic per-cluster view (text/JSON)
-- `nexus export` / `nexus import` — inventory JSON backup and full DB inventory replace (clears persisted plan)
+- `gittriage scan` — inventory
+- `gittriage score` — scores and evidence (stdout; does not replace persisted plan)
+- `gittriage plan` — full plan with actions + persistence
+- `gittriage report` — human/machine reports
+- `gittriage doctor`
+- `gittriage tools`
+- `gittriage explain` — deterministic per-cluster view (text/JSON)
+- `gittriage export` / `gittriage import` — inventory JSON backup and full DB inventory replace (clears persisted plan)
 
 Shipped alongside core:
 
-- `nexus tui` — interactive terminal browser (secondary interface)
-- `nexus ai-summary` — AI-generated plan summary (experimental; requires config + API key)
-- `nexus suggest` — AI-assisted suggestions (planned, not yet shipped)
+- `gittriage tui` — interactive terminal browser (secondary interface)
+- `gittriage ai-summary` — AI-generated plan summary (experimental; requires config + API key)
+- `gittriage suggest` — AI-assisted suggestions (planned, not yet shipped)
 
 ### Secondary interface: TUI
 
@@ -167,7 +167,7 @@ Bad TUI use cases:
 
 **AI should be optional.**
 
-Nexus must run perfectly without AI. AI is a value-add, not a dependency.
+GitTriage must run perfectly without AI. AI is a value-add, not a dependency.
 
 ### What AI should do
 
@@ -192,7 +192,7 @@ Support:
 - user-supplied API key and base URL
 - optional local model endpoints later if simple to support
 
-The AI layer should consume structured Nexus data, not raw repo trees by default.
+The AI layer should consume structured GitTriage data, not raw repo trees by default.
 
 ## Packaging and distribution
 
@@ -213,7 +213,7 @@ The **Rust binary is the real product**.
 - `npx`
 - `bunx`
 
-The npm/bun package should be a thin wrapper that fetches the correct prebuilt binary. It should not reimplement Nexus in JavaScript.
+The npm/bun package should be a thin wrapper that fetches the correct prebuilt binary. It should not reimplement GitTriage in JavaScript.
 
 ### Supported templates (shipped)
 
@@ -223,13 +223,13 @@ The npm/bun package should be a thin wrapper that fetches the correct prebuilt b
 
 ## Scoring system
 
-Nexus should not rely on a single magic score. It should provide a **small, explainable scoring model**.
+GitTriage should not rely on a single magic score. It should provide a **small, explainable scoring model**.
 
 ### Default scores
 
 #### 1. Canonical Confidence
 
-How sure is Nexus that this clone/repo is the canonical working copy?
+How sure is GitTriage that this clone/repo is the canonical working copy?
 
 Signals:
 
@@ -335,7 +335,7 @@ Signals:
 
 ## Why “OSS readiness” should not be the default
 
-Not all users are OSS maintainers. If OSS readiness becomes a headline score, Nexus becomes biased toward public packaging rather than repo triage.
+Not all users are OSS maintainers. If OSS readiness becomes a headline score, GitTriage becomes biased toward public packaging rather than repo triage.
 
 The better model is:
 
@@ -378,7 +378,7 @@ Therefore:
 
 ## Competitive position
 
-Nexus should not try to beat broad platforms at their own game.
+GitTriage should not try to beat broad platforms at their own game.
 
 The winning position is:
 
@@ -387,7 +387,7 @@ The winning position is:
 - more deterministic than AI wrappers
 - more local-first than web-native catalogs
 
-This gives Nexus a clear wedge:
+This gives GitTriage a clear wedge:
 
 **a trustworthy repo triage tool for developers with too many repos and too little certainty**
 
@@ -443,8 +443,8 @@ Shipped:
 
 - optional AI on top of deterministic `explain` (`--ai` flag)
 - `ai-summary` for plan-wide narrative
-- OpenAI-compatible endpoint config (`[ai]` in `nexus.toml`)
-- strict grounding in deterministic Nexus output
+- OpenAI-compatible endpoint config (`[ai]` in `gittriage.toml`)
+- strict grounding in deterministic GitTriage output
 
 Remaining:
 
@@ -471,12 +471,12 @@ Early product success should be measured by:
 - percentage of users who understand their canonical repos after first run
 - number of actionable findings per scan
 - quality and trust in score explanations
-- number of users who can use Nexus without AI
+- number of users who can use GitTriage without AI
 - install success across package channels
 
 ## Non-goals
 
-For the foreseeable roadmap, Nexus should avoid:
+For the foreseeable roadmap, GitTriage should avoid:
 
 - a web dashboard
 - multi-user collaboration features
@@ -487,4 +487,4 @@ For the foreseeable roadmap, Nexus should avoid:
 
 ## One-line positioning
 
-**Nexus is the local-first CLI that tells you which repos matter, which copy is real, and what to do next.**
+**GitTriage is the local-first CLI that tells you which repos matter, which copy is real, and what to do next.**

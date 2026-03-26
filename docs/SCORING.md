@@ -1,10 +1,10 @@
 # Scoring model
 
-Nexus uses a **small, explainable** scoring model (see `docs/PRODUCT_STRATEGY.md`). The engine is **deterministic**; optional profiles layer on via `planner.scoring_profile` and evidence (see `docs/SCORING_PROFILES.md`) without changing the default five-axis `ScoreBundle` fields.
+GitTriage uses a **small, explainable** scoring model (see `docs/PRODUCT_STRATEGY.md`). The engine is **deterministic**; optional profiles layer on via `planner.scoring_profile` and evidence (see `docs/SCORING_PROFILES.md`) without changing the default five-axis `ScoreBundle` fields.
 
 ## JSON fields vs product language (v0)
 
-`plan.json` and `nexus score --format json` expose a `ScoreBundle` with **stable Rust/JSON field names** today. They map to the product strategy as follows:
+`plan.json` and `gittriage score --format json` expose a `ScoreBundle` with **stable Rust/JSON field names** today. They map to the product strategy as follows:
 
 | JSON field (`ScoreBundle`) | Product concept (strategy) | Notes |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ Nexus uses a **small, explainable** scoring model (see `docs/PRODUCT_STRATEGY.md
 | `oss_readiness` | **Publish readiness** signals | License/docs/publish cues—not "OSS compatibility" as a headline for all users |
 | `risk` | **Maintenance risk** | Higher = more caution / time sink |
 
-`PlanDocument` also carries **`scoring_rules_version`** (integer): the version of the deterministic rule set in `nexus-plan` (`crates/nexus-plan/src/scoring.rs`). It can change without bumping the CLI semver.
+`PlanDocument` also carries **`scoring_rules_version`** (integer): the version of the deterministic rule set in `gittriage-plan` (`crates/gittriage-plan/src/scoring.rs`). It can change without bumping the CLI semver.
 
 Do **not** treat `oss_readiness` as "this project is OSS-ready" for every user; many users only want triage. Optional profiles (Publish Readiness, Open Source Readiness, Security, AI Handoff) are documented in `docs/SCORING_PROFILES.md`.
 

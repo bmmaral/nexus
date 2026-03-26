@@ -1,18 +1,18 @@
 [workspace]
 members = [
-  "crates/nexus-cli",
-  "crates/nexus-core",
-  "crates/nexus-config",
-  "crates/nexus-db",
-  "crates/nexus-scan",
-  "crates/nexus-git",
-  "crates/nexus-github",
-  "crates/nexus-plan",
-  "crates/nexus-report",
-  "crates/nexus-adapters",
-    "crates/nexus-api",
-    "crates/nexus-tui",
-    "crates/nexus-ai",
+  "crates/gittriage-cli",
+  "crates/gittriage-core",
+  "crates/gittriage-config",
+  "crates/gittriage-db",
+  "crates/gittriage-scan",
+  "crates/gittriage-git",
+  "crates/gittriage-github",
+  "crates/gittriage-plan",
+  "crates/gittriage-report",
+  "crates/gittriage-adapters",
+    "crates/gittriage-api",
+    "crates/gittriage-tui",
+    "crates/gittriage-ai",
 ]
 resolver = "2"
 
@@ -20,7 +20,7 @@ resolver = "2"
 edition = "2021"
 license = "MIT"
 version = "0.1.0"
-authors = ["Nexus contributors"]
+authors = ["GitTriage contributors"]
 rust-version = "1.82"
 
 [workspace.dependencies]
